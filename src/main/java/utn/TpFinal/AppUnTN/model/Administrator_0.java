@@ -1,4 +1,4 @@
 package utn.TpFinal.AppUnTN.model;
 
-public class Administrador {
+public class Administrator_0 {
 }

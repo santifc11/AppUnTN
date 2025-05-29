@@ -1,4 +1,4 @@
 package utn.TpFinal.AppUnTN.model;
 
-public class Comentario {
+public class Document {
 }
