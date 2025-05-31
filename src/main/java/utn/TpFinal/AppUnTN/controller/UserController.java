@@ -28,7 +28,7 @@ public class UserController {
                 .orElse("Las credenciales ingresadas son incorrectas.");
     }
 
-    @GetMapping
+    @GetMapping("/getAllUsers")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.readAll();
         return ResponseEntity.ok(users);
