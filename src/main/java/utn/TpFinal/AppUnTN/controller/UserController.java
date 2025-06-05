@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.LoginRequest;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.UserService;
