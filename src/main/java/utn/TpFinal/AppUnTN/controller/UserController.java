@@ -2,6 +2,7 @@ package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.LoginRequest;
 import utn.TpFinal.AppUnTN.model.Role;
@@ -12,7 +13,7 @@ import utn.TpFinal.AppUnTN.service.UserService;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
+@Controller //estaba@RestController pero lo tuve que cambiar para que entre html.
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user){
+    public ResponseEntity<User> register(@ModelAttribute User user){ //Model Attribute para que acepte datos de formulario.
         return ResponseEntity.ok(userService.register(user));
     }
 
