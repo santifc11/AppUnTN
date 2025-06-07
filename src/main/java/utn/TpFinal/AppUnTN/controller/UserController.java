@@ -33,4 +33,31 @@ public class UserController {
         List<User> users = userService.readAll();
         return ResponseEntity.ok(users);
     }
+
+    @DeleteMapping("/deleteUser/{username}")
+    public ResponseEntity<String> deleteUserByUsername(@PathVariable String username) {
+        String result = userService.deleteUserByUsername(username);
+        if (result != null) {
+            return ResponseEntity.ok(result); // HTTP 200
+        } else {
+            return ResponseEntity.status(404).body("Usuario '" + username + "' no encontrado."); // HTTP 404
+        }
+    }
+
+
+    @PutMapping("/updateUser/{username}")
+    public ResponseEntity<String> updateUserByUsername(
+            @PathVariable String username,
+            @RequestBody User updatedUserData
+    ) {
+        String result = userService.updateUserByUsername(username, updatedUserData);
+        if (result.contains("actualizado")) {
+            return ResponseEntity.ok(result); // 200 OK
+        } else {
+            return ResponseEntity.status(404).body(result); // 404 Not Found
+        }
+    }
+
+
+
 }

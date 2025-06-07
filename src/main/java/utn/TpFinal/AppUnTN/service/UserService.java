@@ -27,4 +27,36 @@ public class UserService {
     public List<User> readAll() {
         return userRepo.findAll();
     }
+
+
+    public String deleteUserByUsername(String username) {
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    userRepo.delete(user);
+                    return "Usuario '" + username + "' eliminado con éxito.";
+                })
+                .orElse(null);
+    }
+
+    public String updateUserByUsername(String username, User updatedUserData) {
+        return userRepo.findByUsername(username)
+                .map(existingUser -> {
+                    // Actualizar campos (excepto username)
+                    existingUser.setName(updatedUserData.getName());
+                    existingUser.setLastname(updatedUserData.getLastname());
+                    existingUser.setMail(updatedUserData.getMail());
+                    existingUser.setPassword(updatedUserData.getPassword());
+                    existingUser.setCity(updatedUserData.getCity());
+                    existingUser.setAbout(updatedUserData.getAbout());
+                    existingUser.setRole(updatedUserData.getRole());
+
+                    userRepo.save(existingUser);
+                    return "Usuario '" + username + "' actualizado con éxito.";
+                })
+                .orElse("Usuario '" + username + "' no encontrado.");
+    }
+
+
+
+
 }
