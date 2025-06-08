@@ -1,24 +1,22 @@
 package utn.TpFinal.AppUnTN.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Commentary {
+public class Punctuation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    private String content;
-
-    @CreationTimestamp
-    private LocalDateTime creationDate;
+    @Min(1)
+    @Max(5)
+    @Column(nullable = false)
+    private int value;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
