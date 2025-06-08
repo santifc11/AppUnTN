@@ -1,15 +1,19 @@
 package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import utn.TpFinal.AppUnTN.DTO.LoginRequest;
 import utn.TpFinal.AppUnTN.Security.JwtService;
-import utn.TpFinal.AppUnTN.DTO.AuthRequest;
-import utn.TpFinal.AppUnTN.DTO.AuthResponse;
-import utn.TpFinal.AppUnTN.service.CustomUserDetailsService;
+import utn.TpFinal.AppUnTN.DTO.LoginResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,26 +26,22 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
 
-        // 1. Autenticar las credenciales
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getUsername(),
-                        authRequest.getPassword()
-                )
-        );
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String jwtToken = jwtService.generateToken(userDetails);
 
-        // 2. Cargar el usuario desde la base de datos
-        UserDetails user = userDetailsService.loadUserByUsername(authRequest.getUsername());
-
-        // 3. Generar el token JWT
-        String jwtToken = jwtService.generateToken(user);
-
-        // 4. Devolver el token al cliente
-        return ResponseEntity.ok(new AuthResponse(jwtToken));
+            return ResponseEntity.ok(new LoginResponse(jwtToken));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+        }
     }
+
 }
