@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/users/**").permitAll() // ← Acá agregás el acceso libre
+                        .requestMatchers("/api/auth/**", "/api/users/**","/api/documents/**").permitAll() // ← Acá agregás el acceso libre
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
