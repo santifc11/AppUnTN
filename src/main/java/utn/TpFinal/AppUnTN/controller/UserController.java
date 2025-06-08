@@ -25,16 +25,14 @@ public class UserController {
         this.userService=userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<User> register(@ModelAttribute User user){ //Model Attribute para que acepte datos de formulario.
+    @PostMapping(
+            value = "/register",
+            consumes = {"application/json", "application/x-www-form-urlencoded"}
+    )
+    public ResponseEntity<User> register(@RequestBody(required = false) User userFromJson,
+                                         @ModelAttribute User userFromForm) {
+        User user = userFromJson != null ? userFromJson : userFromForm;
         return ResponseEntity.ok(userService.register(user));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody LoginRequest loginRequest) {
-        Optional<User> user = userService.login(loginRequest    .getUsername(), loginRequest.getPassword());
-        return user.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(401).build());
     }
 
     @GetMapping("/getAllUsers")
