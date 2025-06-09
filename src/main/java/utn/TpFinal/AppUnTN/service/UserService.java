@@ -68,8 +68,9 @@ public class UserService {
                 .orElse("Usuario '" + username + "' no encontrado.");
     }
 
-
-
+    public Optional<User> findByUsername(String username) {
+        return userRepo.findByUsername(username);
+    }
 
 }
 

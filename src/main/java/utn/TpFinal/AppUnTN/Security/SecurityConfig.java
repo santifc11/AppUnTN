@@ -52,17 +52,21 @@ public class SecurityConfig {
                 UserDetailsService userDetailsService) throws Exception {
             return http
                     .csrf(csrf -> csrf.disable())
-
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers(
                                     "/", "/index.html", "/register.html",
                                     "/css/**", "/js/**", "/img/**",
                                     "/api/users/register",
-                                    "/api/auth/**"
+                                    "/api/auth/**",
+                                    "/login.html",
+                                    "/api/auth/login",
+                                    "/home.html",
+                                    "/api/users/**"
                             ).permitAll()
-                            .requestMatchers("/api/users/**").authenticated() // protegidos
+                            .requestMatchers("/api/users/**", "/api/users/me").authenticated() // protegidos
                             .anyRequest().authenticated()
                     )
+
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authenticationProvider(authenticationProvider(userDetailsService))
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

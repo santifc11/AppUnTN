@@ -2,6 +2,9 @@ package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.LoginRequest;
@@ -36,7 +39,7 @@ public class UserController {
     }*/
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@ModelAttribute User user) {
+    public ResponseEntity<User> register(@RequestBody User user) {
         return ResponseEntity.ok(userService.register(user));
     }
 
@@ -69,6 +72,17 @@ public class UserController {
             return ResponseEntity.status(404).body(result); // 404 Not Found
         }
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(Authentication authentication) {
+        String username = authentication.getName(); // extrae el nombre de usuario del token JWT
+        return userService.findByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+
 
 
 
