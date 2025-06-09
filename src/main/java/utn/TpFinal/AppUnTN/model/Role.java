@@ -1,7 +1,7 @@
 package utn.TpFinal.AppUnTN.model;
 
 public enum Role {
-    STUDENT,
+    ADMIN,
     PROFESSOR,
-    ADMIN
+    STUDENT
 }
