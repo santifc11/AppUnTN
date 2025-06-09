@@ -54,7 +54,7 @@ public class SecurityConfig {
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/auth/**").permitAll()
                             .requestMatchers("/api/users/register").permitAll()
-                            // 🔴 requiere autenticación
+                            .requestMatchers("/api/users/**").authenticated()// 🔴 requiere autenticación
                             .anyRequest().authenticated()
                     )
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

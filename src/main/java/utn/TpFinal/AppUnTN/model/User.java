@@ -25,7 +25,6 @@ public class User implements UserDetails {
     private String city;
     @Lob //hace que el string pueda ser de mas de 255 caracteres.
     private String about;
-    @Enumerated(EnumType.STRING)
     private Role role; //asigna el rol del usuario
 
 
