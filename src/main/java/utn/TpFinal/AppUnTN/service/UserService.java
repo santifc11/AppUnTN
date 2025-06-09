@@ -1,9 +1,10 @@
 package utn.TpFinal.AppUnTN.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 
@@ -41,32 +42,69 @@ public class UserService {
     }
 
 
-    public String deleteUserByUsername(String username) {
-        return userRepo.findByUsername(username)
-                .map(user -> {
-                    userRepo.delete(user);
-                    return "Usuario '" + username + "' eliminado con éxito.";
-                })
-                .orElse(null);
+    public String deleteUser(String usernameRequester, String usernameToDelete) {
+        Optional<User> requesterOpt = userRepo.findByUsername(usernameRequester);
+        Optional<User> toDeleteOpt = userRepo.findByUsername(usernameToDelete);
+
+        if (requesterOpt.isEmpty()) {
+            return "Usuario solicitante no encontrado.";
+        }
+        if (toDeleteOpt.isEmpty()) {
+            return "Usuario a eliminar no encontrado.";
+        }
+
+        User requester = requesterOpt.get();
+        User toDelete = toDeleteOpt.get();
+
+        // Caso 1: el usuario se borra a sí mismo
+        if (usernameRequester.equals(usernameToDelete)) {
+            userRepo.delete(toDelete);
+            return "Usuario '" + usernameToDelete + "' eliminado con éxito (autodelete).";
+        }
+
+        // Caso 2: ADMIN borra a cualquier usuario (incluso otro ADMIN)
+        if (requester.getRole() == Role.ADMIN) {
+            userRepo.delete(toDelete);
+            return "Usuario '" + usernameToDelete + "' eliminado con éxito por ADMIN.";
+        }
+
+        // Caso contrario: no autorizado
+        return "No autorizado para eliminar al usuario '" + usernameToDelete + "'.";
     }
 
-    public String updateUserByUsername(String username, User updatedUserData) {
+
+    public String updateUserByUsername(String username, UserUpdateDTO updatedUserData) {
         return userRepo.findByUsername(username)
                 .map(existingUser -> {
-                    // Actualizar campos (excepto username)
-                    existingUser.setName(updatedUserData.getName());
-                    existingUser.setLastname(updatedUserData.getLastname());
-                    existingUser.setMail(updatedUserData.getMail());
-                    existingUser.setPassword(updatedUserData.getPassword());
-                    existingUser.setCity(updatedUserData.getCity());
-                    existingUser.setAbout(updatedUserData.getAbout());
-                    existingUser.setRole(updatedUserData.getRole());
+                    if (updatedUserData.getName() != null && !updatedUserData.getName().isBlank()) {
+                        existingUser.setName(updatedUserData.getName());
+                    }
+                    if (updatedUserData.getLastname() != null && !updatedUserData.getLastname().isBlank()) {
+                        existingUser.setLastname(updatedUserData.getLastname());
+                    }
+                    if (updatedUserData.getMail() != null && !updatedUserData.getMail().isBlank()) {
+                        existingUser.setMail(updatedUserData.getMail());
+                    }
+                    if (updatedUserData.getPassword() != null && !updatedUserData.getPassword().isBlank()) {
+                        String encodedPassword = passwordEncoder.encode(updatedUserData.getPassword());
+                        existingUser.setPassword(encodedPassword);
+                    }
+                    if (updatedUserData.getCity() != null && !updatedUserData.getCity().isBlank()) {
+                        existingUser.setCity(updatedUserData.getCity());
+                    }
+                    if (updatedUserData.getAbout() != null && !updatedUserData.getAbout().isBlank()) {
+                        existingUser.setAbout(updatedUserData.getAbout());
+                    }
 
+                    // No actualizamos username ni role
                     userRepo.save(existingUser);
                     return "Usuario '" + username + "' actualizado con éxito.";
                 })
                 .orElse("Usuario '" + username + "' no encontrado.");
     }
+
+
+
 
 
 
