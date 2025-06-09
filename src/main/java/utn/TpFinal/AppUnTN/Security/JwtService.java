@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class JwtService {
 
     // Devuelve la clave usada para firmar/validar el token
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY); // Decodifica la clave (base64)
+        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8); // Decodifica la clave (base64)
         return Keys.hmacShaKeyFor(keyBytes); // Genera la clave HMAC con SHA-256
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.List;
 
 @Component // Marca esta clase como un Bean para que Spring pueda inyectarla
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -28,7 +29,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getServletPath();
-        if (path.startsWith("/api/auth")) {
+        List<String> publicPaths = List.of("/api/auth", "/api/users/register");
+
+        if (publicPaths.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }
