@@ -25,13 +25,18 @@ public class UserController {
         this.userService=userService;
     }
 
-    @PostMapping(
+   /* @PostMapping(
             value = "/register",
             consumes = {"application/json", "application/x-www-form-urlencoded"}
     )
     public ResponseEntity<User> register(@RequestBody(required = false) User userFromJson,
                                          @ModelAttribute User userFromForm) {
         User user = userFromJson != null ? userFromJson : userFromForm;
+        return ResponseEntity.ok(userService.register(user));
+    }*/
+
+    @PostMapping("/register")
+    public ResponseEntity<User> register(@ModelAttribute User user) {
         return ResponseEntity.ok(userService.register(user));
     }
 
