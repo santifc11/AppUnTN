@@ -1,20 +1,20 @@
 package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import utn.TpFinal.AppUnTN.DTO.LoginRequest;
-import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
+import utn.TpFinal.AppUnTN.DTO.UsernameRequest;
 import utn.TpFinal.AppUnTN.model.User;
-import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller //estaba@RestController pero lo tuve que cambiar para que entre html.
 @RequestMapping("/api/users")
@@ -49,27 +49,34 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @DeleteMapping("/deleteUser/{username}")
-    public ResponseEntity<String> deleteUserByUsername(@PathVariable String username) {
-        String result = userService.deleteUserByUsername(username);
-        if (result != null) {
-            return ResponseEntity.ok(result); // HTTP 200
+    @DeleteMapping("/deleteUser")
+    public ResponseEntity<String> deleteUser(@RequestBody UsernameRequest usernameRequest) {
+        String usernameToDelete = usernameRequest.getUsername();
+        String usernameRequester = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        String result = userService.deleteUser(usernameRequester, usernameToDelete);
+
+        if (result.contains("eliminado con éxito")) {
+            return ResponseEntity.ok(result);
+        } else if (result.contains("No autorizado")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
         } else {
-            return ResponseEntity.status(404).body("Usuario '" + username + "' no encontrado."); // HTTP 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
     }
 
 
-    @PutMapping("/updateUser/{username}")
-    public ResponseEntity<String> updateUserByUsername(
-            @PathVariable String username,
-            @RequestBody User updatedUserData
-    ) {
-        String result = userService.updateUserByUsername(username, updatedUserData);
+
+
+    @PutMapping("/updateUser")
+    public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String result = userService.updateUserByUsername(username, updatedData);
+
         if (result.contains("actualizado")) {
-            return ResponseEntity.ok(result); // 200 OK
+            return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.status(404).body(result); // 404 Not Found
+            return ResponseEntity.status(404).body(result);
         }
     }
 
@@ -80,6 +87,8 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+
 
 
 
