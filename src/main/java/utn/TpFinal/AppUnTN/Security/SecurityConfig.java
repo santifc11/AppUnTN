@@ -46,24 +46,35 @@ public class SecurityConfig {
 
         // Configuración del filtro de seguridad para proteger rutas y validar JWT
         @Bean
-        public SecurityFilterChain securityFilterChain (HttpSecurity http,
+        public SecurityFilterChain securityFilterChain(
+                HttpSecurity http,
                 JwtAuthFilter jwtAuthFilter,
                 UserDetailsService userDetailsService) throws Exception {
             return http
                     .csrf(csrf -> csrf.disable())
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/auth/**").permitAll()
-                            .requestMatchers("/api/users/register").permitAll()
-                            .requestMatchers("/api/users/**").authenticated()// 🔴 requiere autenticación
+                            .requestMatchers(
+                                    "/", "/index.html", "/register.html",
+                                    "/css/**", "/js/**", "/img/**",
+                                    "/api/users/register",
+                                    "/api/auth/**",
+                                    "/login.html",
+                                    "/api/auth/login",
+                                    "/home.html",
+                                    "/api/users/**"
+                            ).permitAll()
+                            .requestMatchers("/api/users/**", "/api/users/me").authenticated() // protegidos
                             .anyRequest().authenticated()
                     )
+
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authenticationProvider(authenticationProvider(userDetailsService))
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                     .build();
         }
 
-        @Bean
+
+    @Bean
         public UserDetailsService userDetailsService () {
             return new CustomUserDetailsService();
         }
