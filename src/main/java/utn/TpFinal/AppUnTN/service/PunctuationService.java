@@ -1,43 +1,49 @@
 package utn.TpFinal.AppUnTN.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
-import utn.TpFinal.AppUnTN.model.User;
-import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 import utn.TpFinal.AppUnTN.repository.PunctuationRepository;
 
-import java.util.Optional;
-
+import java.util.List;
 @Service
-@RequiredArgsConstructor
 public class PunctuationService {
 
     private final PunctuationRepository punctuationRepository;
-    private final DocumentRepository documentRepository;
 
-    public Punctuation rate(Long documentId, int value, User user) {
-        if (value < 1 || value > 5) {
-            throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5.");
-        }
+    @Autowired
+    public PunctuationService(PunctuationRepository punctuationRepository) {
+        this.punctuationRepository = punctuationRepository;
+    }
 
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
-
-        // Opcional: evitar puntuaciones duplicadas del mismo usuario
-        Optional<Punctuation> existing = punctuationRepository.findAll().stream()
-                .filter(p -> p.getAuthor().getId().equals(user.getId()) && p.getDocument().getId().equals(documentId))
-                .findFirst();
-        if (existing.isPresent()) {
-            throw new RuntimeException("Ya has puntuado este documento.");
-        }
-
-        Punctuation p = new Punctuation();
-        p.setDocument(document);
-        p.setAuthor(user);
-        p.setValue(value);
-
+    public Punctuation guardar(Punctuation p) {
         return punctuationRepository.save(p);
     }
+
+    public List<Punctuation> listarPorDocumento(Document document) {
+        return punctuationRepository.findByDocument(document);
+    }
+
+    public Punctuation actualizar(Long id, int nuevoValor) {
+        if (nuevoValor < 1 || nuevoValor > 5) {
+            throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5");
+        }
+        Punctuation puntuacion = punctuationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Puntuación no encontrada"));
+        puntuacion.setValue(nuevoValor);
+        return punctuationRepository.save(puntuacion);
+    }
+
+    public void eliminar(Long id) {
+        punctuationRepository.deleteById(id);
+    }
+
+    public double obtenerPromedioPorDocumento(Document document) {
+        return punctuationRepository.findByDocument(document).stream()
+                .mapToInt(Punctuation::getValue)
+                .average()
+                .orElse(0.0);
+    }
 }
+
