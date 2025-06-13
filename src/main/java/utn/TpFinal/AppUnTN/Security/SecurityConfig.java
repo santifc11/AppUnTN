@@ -61,9 +61,12 @@ public class SecurityConfig {
                                     "/login.html",
                                     "/api/auth/login",
                                     "/home.html",
-                                    "/api/users/**"
+                                    "/api/users/**",
+                                    "api/documents/**",
+                                    "api/punctuations/**",
+                                    "api/commentaries/**"
                             ).permitAll()
-                            .requestMatchers("/api/users/**", "/api/users/me").authenticated() // protegidos
+                            .requestMatchers( "/api/users/me").authenticated() // protegidos
                             .anyRequest().authenticated()
                     )
 

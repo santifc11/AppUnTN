@@ -1,30 +1,40 @@
 package utn.TpFinal.AppUnTN.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
-import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.CommentaryRepository;
-import utn.TpFinal.AppUnTN.repository.DocumentRepository;
+
+import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class CommentaryService {
 
     private final CommentaryRepository commentaryRepository;
-    private final DocumentRepository documentRepository;
 
-    public Commentary addComment(Long documentId, String content, User user) {
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+    @Autowired
+    public CommentaryService(CommentaryRepository commentaryRepository) {
+        this.commentaryRepository = commentaryRepository;
+    }
 
-        Commentary commentary = new Commentary();
-        commentary.setContent(content);
-        commentary.setDocument(document);
-        commentary.setAuthor(user);
+    public Commentary guardar(Commentary c) {
+        return commentaryRepository.save(c);
+    }
 
-        return commentaryRepository.save(commentary);
+    public List<Commentary> listarPorDocumento(Document document) {
+        return commentaryRepository.findByDocument(document);
+    }
+
+    public void eliminar(Long id) {
+        commentaryRepository.deleteById(id);
+    }
+
+    public Commentary actualizar(Long id, String nuevoContenido) {
+        Commentary comentario = commentaryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comentario no encontrado"));
+        comentario.setContent(nuevoContenido);
+        return commentaryRepository.save(comentario);
     }
 }
 
