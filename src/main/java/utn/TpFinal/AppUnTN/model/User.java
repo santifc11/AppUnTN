@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,4 +53,9 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
+    @ElementCollection(targetClass = Subject.class)
+    @CollectionTable(name = "user_subjects", joinColumns = @JoinColumn(name = "id"))
+    @Column(name = "subject")
+    private List<Subject> subjects = new ArrayList<>();
 }

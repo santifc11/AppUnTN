@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 
@@ -105,6 +106,25 @@ public class UserService {
 
     public Optional<User> findByUsername(String username) {
         return userRepo.findByUsername(username);
+    }
+
+    public List<Subject> getSubjectsOfProfessor(String username) {
+        return userRepo.findByUsername(username)
+                .filter(user -> user.getRole() == Role.PROFESSOR)
+                .map(User::getSubjects)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado o no es profesor"));
+    }
+
+    public String updateSubjects(String username, List<Subject> subjects) {
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    if (user.getRole() != Role.PROFESSOR) {
+                        throw new RuntimeException("Solo los profesores pueden tener materias asignadas");
+                    }
+                    user.setSubjects(subjects);
+                    userRepo.save(user);
+                    return "Materias actualizadas correctamente";
+                }).orElse("Usuario no encontrado");
     }
 
 

@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import utn.TpFinal.AppUnTN.DTO.SubjectsDTO;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.DTO.UsernameRequest;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.UserService;
 
@@ -27,16 +27,6 @@ public class UserController {
     public UserController(UserService userService){
         this.userService=userService;
     }
-
-   /* @PostMapping(
-            value = "/register",
-            consumes = {"application/json", "application/x-www-form-urlencoded"}
-    )
-    public ResponseEntity<User> register(@RequestBody(required = false) User userFromJson,
-                                         @ModelAttribute User userFromForm) {
-        User user = userFromJson != null ? userFromJson : userFromForm;
-        return ResponseEntity.ok(userService.register(user));
-    }*/
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody User user) {
@@ -88,12 +78,19 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/subjects/get")
+    public ResponseEntity<List<Subject>> getSubjectsOfProfessor(Authentication auth) {
+        String username = auth.getName();
+        List<Subject> subjects = userService.getSubjectsOfProfessor(username);
+        return ResponseEntity.ok(subjects);
+    }
 
-
-
-
-
-
+    @PutMapping("/subjects/update")
+    public ResponseEntity<String> updateSubjects(Authentication auth, @RequestBody SubjectsDTO dto) {
+        String username = auth.getName();
+        String resultado = userService.updateSubjects(username, dto.getSubjects());
+        return ResponseEntity.ok(resultado);
+    }
 
 }
 
