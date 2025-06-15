@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import utn.TpFinal.AppUnTN.DTO.FilterSubjectDTO;
 import utn.TpFinal.AppUnTN.DTO.IdRequest;
 import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
+import utn.TpFinal.AppUnTN.DTO.PunctuationDTO;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
@@ -105,12 +106,18 @@ public class DocumentController {
     }
 
 
+
     @PostMapping("/filterBySubject")
-    public ResponseEntity<List<Document>> filterBySubject(@RequestBody FilterSubjectDTO filter){
+    public ResponseEntity<List<DocumentResponseDTO>> filterBySubject(@RequestBody FilterSubjectDTO filter) {
         try {
-            Subject subject=Subject.valueOf(filter.getSubject().toUpperCase());
-            List<Document>documents=documentService.findBySubject(subject);
-            return ResponseEntity.ok(documents);
+            Subject subject = Subject.valueOf(filter.getSubject().toUpperCase());
+            List<Document> documents = documentService.findBySubject(subject);
+
+            List<DocumentResponseDTO> response = documents.stream()
+                    .map(documentService::mapToDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Collections.emptyList());
