@@ -17,8 +17,9 @@ public class Document {
 
     private String description;
 
-    private String fileType;
+    private Subject subject;
 
+    private String fileType;
     @Lob
     private byte[] data; // archivo binario
 

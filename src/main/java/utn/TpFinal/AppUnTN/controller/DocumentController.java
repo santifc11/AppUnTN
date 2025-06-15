@@ -6,14 +6,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import utn.TpFinal.AppUnTN.DTO.FilterSubjectDTO;
 import utn.TpFinal.AppUnTN.DTO.IdRequest;
 import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +40,7 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
+            @RequestParam("subject") String subject,
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
@@ -47,6 +51,7 @@ public class DocumentController {
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
+            doc.setSubject(Subject.valueOf(subject));
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());
@@ -96,6 +101,19 @@ public class DocumentController {
             return ResponseEntity.ok(dto);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Documento no encontrado");
+        }
+    }
+
+
+    @PostMapping("/filterBySubject")
+    public ResponseEntity<List<Document>> filterBySubject(@RequestBody FilterSubjectDTO filter){
+        try {
+            Subject subject=Subject.valueOf(filter.getSubject().toUpperCase());
+            List<Document>documents=documentService.findBySubject(subject);
+            return ResponseEntity.ok(documents);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
         }
     }
 }
