@@ -13,15 +13,17 @@ import java.time.LocalDate;
 public class CommentaryDTO {
     private Long id;
     private String content;
-    private LocalDate creationDate;
     private String authorUsername;
+    private LocalDate creationDate;
+    private boolean destacado; // ✅ nuevo campo
 
     public static CommentaryDTO fromEntity(Commentary c) {
-        return new CommentaryDTO(
-                c.getId(),
-                c.getContent(),
-                c.getCreationDate(),
-                c.getAuthor().getUsername()
-        );
+        CommentaryDTO dto = new CommentaryDTO();
+        dto.setId(c.getId());
+        dto.setContent(c.getContent());
+        dto.setAuthorUsername(c.getAuthor().getUsername());
+        dto.setCreationDate(c.getCreationDate());
+        dto.setDestacado(c.isDestacado()); // ✅ seteo del nuevo campo
+        return dto;
     }
 }

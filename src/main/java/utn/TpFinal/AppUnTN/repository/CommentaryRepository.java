@@ -7,5 +7,5 @@ import utn.TpFinal.AppUnTN.model.Document;
 import java.util.List;
 
 public interface CommentaryRepository extends JpaRepository<Commentary, Long> {
-    List<Commentary> findByDocument(Document document);
+    List<Commentary> findByDocumentOrderByDestacadoDescCreationDateDesc(Document document);
 }

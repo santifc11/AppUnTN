@@ -7,9 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import utn.TpFinal.AppUnTN.DTO.SubjectsDTO;
-import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
-import utn.TpFinal.AppUnTN.DTO.UsernameRequest;
+import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.UserService;
@@ -90,6 +88,13 @@ public class UserController {
         String username = auth.getName();
         String resultado = userService.updateSubjects(username, dto.getSubjects());
         return ResponseEntity.ok(resultado);
+    }
+
+    @DeleteMapping("/subjects/delete")
+    public ResponseEntity<String> deleteSubject(Authentication auth, @RequestBody FilterSubjectDTO dto) {
+        String username = auth.getName();
+        String result = userService.deleteSubject(username, dto.getSubject());
+        return ResponseEntity.ok(result);
     }
 
 }

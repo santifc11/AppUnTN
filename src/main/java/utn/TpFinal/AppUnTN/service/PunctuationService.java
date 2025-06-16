@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.repository.PunctuationRepository;
 
 import java.util.List;
@@ -18,11 +19,16 @@ public class PunctuationService {
     }
 
     public Punctuation guardar(Punctuation p) {
+        boolean esProfesor = p.getAuthor().getRole() == Role.PROFESSOR;
+        boolean dictaMateria = p.getAuthor().getSubjects().contains(p.getDocument().getSubject());
+
+        p.setDestacado(esProfesor && dictaMateria);
+
         return punctuationRepository.save(p);
     }
 
-    public List<Punctuation> listarPorDocumento(Document document) {
-        return punctuationRepository.findByDocument(document);
+    public List<Punctuation> listarPorDocumentoOrdenado(Document document) {
+        return punctuationRepository.findByDocumentOrderByDestacadoDesc(document);
     }
 
     public Punctuation actualizar(Long id, int nuevoValor) {
@@ -40,7 +46,7 @@ public class PunctuationService {
     }
 
     public double obtenerPromedioPorDocumento(Document document) {
-        return punctuationRepository.findByDocument(document).stream()
+        return punctuationRepository.findByDocumentOrderByDestacadoDesc(document).stream()
                 .mapToInt(Punctuation::getValue)
                 .average()
                 .orElse(0.0);

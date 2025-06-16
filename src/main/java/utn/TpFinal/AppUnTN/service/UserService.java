@@ -121,11 +121,53 @@ public class UserService {
                     if (user.getRole() != Role.PROFESSOR) {
                         throw new RuntimeException("Solo los profesores pueden tener materias asignadas");
                     }
-                    user.setSubjects(subjects);
+
+                    List<Subject> currentSubjects = user.getSubjects();
+
+                    // Agregamos solo las materias que no estén ya presentes
+                    for (Subject subject : subjects) {
+                        if (!currentSubjects.contains(subject)) {
+                            currentSubjects.add(subject);
+                        }
+                    }
+
+                    user.setSubjects(currentSubjects);
                     userRepo.save(user);
-                    return "Materias actualizadas correctamente";
-                }).orElse("Usuario no encontrado");
+                    return "Materias agregadas correctamente";
+                })
+                .orElse("Usuario no encontrado");
     }
+
+    public String deleteSubject(String username, String subjectStr) {
+        Subject subject;
+
+        try {
+            subject = Subject.valueOf(subjectStr.toUpperCase()); // Convierte a mayúsculas para mayor tolerancia
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return "Materia inválida: " + subjectStr;
+        }
+
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    if (user.getRole() != Role.PROFESSOR) {
+                        throw new RuntimeException("Solo los profesores pueden tener materias asignadas");
+                    }
+
+                    List<Subject> subjects = user.getSubjects();
+
+                    if (subjects.contains(subject)) {
+                        subjects.remove(subject);
+                        user.setSubjects(subjects);
+                        userRepo.save(user);
+                        return "Materia eliminada correctamente";
+                    } else {
+                        return "El profesor no tiene asignada la materia: " + subject;
+                    }
+                })
+                .orElse("Usuario no encontrado");
+    }
+
+
 
 
 

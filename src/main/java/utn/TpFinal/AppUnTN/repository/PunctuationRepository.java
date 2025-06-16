@@ -7,5 +7,5 @@ import utn.TpFinal.AppUnTN.model.Punctuation;
 import java.util.List;
 
 public interface PunctuationRepository extends JpaRepository<Punctuation, Long> {
-    List<Punctuation> findByDocument(Document document);
+    List<Punctuation> findByDocumentOrderByDestacadoDesc(Document document);
 }

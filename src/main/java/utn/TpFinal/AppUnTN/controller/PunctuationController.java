@@ -5,10 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
-import utn.TpFinal.AppUnTN.DTO.IdRequest;
-import utn.TpFinal.AppUnTN.DTO.PunctuationDTO;
-import utn.TpFinal.AppUnTN.DTO.PunctuationRequestDTO;
-import utn.TpFinal.AppUnTN.DTO.UpdatePunctuationRequest;
+import utn.TpFinal.AppUnTN.DTO.*;
+import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
 import utn.TpFinal.AppUnTN.model.User;
@@ -51,12 +49,7 @@ public class PunctuationController {
         punctuation.setAuthor(user);
 
         Punctuation saved = punctuationService.guardar(punctuation);
-        PunctuationDTO dto = new PunctuationDTO(
-                saved.getId(),
-                saved.getValue(),
-                saved.getAuthor().getUsername()
-        );
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(PunctuationDTO.fromEntity(saved));
     }
 
 
@@ -65,7 +58,7 @@ public class PunctuationController {
         Document document = documentService.buscarPorId(request.getId())
                 .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
 
-        List<PunctuationDTO> dtos = punctuationService.listarPorDocumento(document).stream()
+        List<PunctuationDTO> dtos = punctuationService.listarPorDocumentoOrdenado(document).stream()
                 .map(PunctuationDTO::fromEntity)
                 .toList();
 
