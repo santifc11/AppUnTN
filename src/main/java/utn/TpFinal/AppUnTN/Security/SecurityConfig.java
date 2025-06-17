@@ -60,13 +60,29 @@ public class SecurityConfig {
                                     "/api/auth/**",
                                     "/login.html",
                                     "/api/auth/login",
-                                    "/home.html",
+                                    "/index_usuario_perfil.html",
+                                    "/resume_upload.html",
+                                    "/admin_admins.html",
+                                    "/admin_usuarios.html",
+                                    "/profile.html",
                                     "/api/users/**",
                                     "api/documents/**",
                                     "api/punctuations/**",
-                                    "api/commentaries/**"
+                                    "api/commentaries/**",
+                                    "/admin/**",
+                                    "/admin/*.html",
+                                    "/api/users/getAllUsers",
+                                    "/api/users/deleteUser",
+                                    "/api/users/me",
+                                    "/api/users/subjects/get",
+                                    "/api/users/subjects/update",
+                                    "/api/users/subjects/delete",
+                                    "/documents.html",
+                                    "/api/users/subjects/**",
+                                    "/document_preview.html"
+
                             ).permitAll()
-                            .requestMatchers( "/api/users/me").authenticated() // protegidos
+                            //.requestMatchers( "/api/users/me").authenticated() // protegidos
                             .anyRequest().authenticated()
                     )
 

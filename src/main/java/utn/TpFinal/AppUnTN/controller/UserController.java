@@ -53,9 +53,6 @@ public class UserController {
         }
     }
 
-
-
-
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

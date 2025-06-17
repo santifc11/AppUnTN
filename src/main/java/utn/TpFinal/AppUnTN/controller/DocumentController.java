@@ -1,8 +1,7 @@
 package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -122,5 +121,19 @@ public class DocumentController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Collections.emptyList());
         }
+    }
+
+    @PostMapping("/download")
+    public ResponseEntity<byte[]> downloadFileById(@RequestBody IdRequest idRequest) {
+        return documentService.buscarPorId(idRequest.getId())
+                .map(document -> {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.parseMediaType(document.getFileType()));
+                    headers.setContentDisposition(ContentDisposition.attachment()
+                            .filename(document.getTitle() + "." + document.getFileType())
+                            .build());
+                    return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }
