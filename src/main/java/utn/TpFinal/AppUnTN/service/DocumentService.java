@@ -2,11 +2,10 @@ package utn.TpFinal.AppUnTN.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import utn.TpFinal.AppUnTN.DTO.CommentaryDTO;
 import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
-import utn.TpFinal.AppUnTN.DTO.PunctuationDTO;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Subject;
+import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 
 import java.time.LocalDate;
@@ -70,6 +69,11 @@ public class DocumentService {
         return documentRepository.findBySubject(subject);
 
     }
+
+    public List<Document> findByAuthor(User author) {
+        return documentRepository.findByAuthor(author);
+    }
+
 
 
 
