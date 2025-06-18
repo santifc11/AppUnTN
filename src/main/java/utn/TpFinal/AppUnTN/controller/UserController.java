@@ -8,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.*;
+import utn.TpFinal.AppUnTN.Exceptions.UnauthorizedActionException;
+import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.UserService;
@@ -19,7 +21,7 @@ import java.util.List;
 public class UserController {
 
 
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService userService){
@@ -42,16 +44,28 @@ public class UserController {
         String usernameToDelete = usernameRequest.getUsername();
         String usernameRequester = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        String result = userService.deleteUser(usernameRequester, usernameToDelete);
+        try {
+            String result = userService.deleteUser(usernameRequester, usernameToDelete);
 
-        if (result.contains("eliminado con éxito")) {
-            return ResponseEntity.ok(result);
-        } else if (result.contains("No autorizado")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            if (result.contains("eliminado con éxito")) {
+                return ResponseEntity.ok(result);
+            } else if (result.contains("No autorizado")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (UnauthorizedActionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()); // 💥 nuevo caso si tiene docs
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error inesperado.");
         }
     }
+
 
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {

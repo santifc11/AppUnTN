@@ -3,10 +3,13 @@ package utn.TpFinal.AppUnTN.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
+import utn.TpFinal.AppUnTN.Exceptions.UserAlreadyExistsException;
 import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
+import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 
 import java.util.List;
@@ -17,15 +20,20 @@ public class UserService {
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
+    private final DocumentRepository documentRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, DocumentRepository documentRepository) {
         this.userRepo = userRepository;
         this.passwordEncoder=passwordEncoder;
+        this.documentRepository = documentRepository;
     }
 
     //Le asigna un Id al user y lo guarda en la bdd.
     public User register(User user){
+        if (userRepo.findByUsername(user.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("El nombre de usuario ya está registrado.");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -42,7 +50,7 @@ public class UserService {
         return userRepo.findAll();
     }
 
-
+@Transactional
     public String deleteUser(String usernameRequester, String usernameToDelete) {
         Optional<User> requesterOpt = userRepo.findByUsername(usernameRequester);
         Optional<User> toDeleteOpt = userRepo.findByUsername(usernameToDelete);
@@ -57,21 +65,21 @@ public class UserService {
         User requester = requesterOpt.get();
         User toDelete = toDeleteOpt.get();
 
-        // Caso 1: el usuario se borra a sí mismo
+        documentRepository.deleteAllByAuthor(toDelete);
+
         if (usernameRequester.equals(usernameToDelete)) {
             userRepo.delete(toDelete);
             return "Usuario '" + usernameToDelete + "' eliminado con éxito (autodelete).";
         }
 
-        // Caso 2: ADMIN borra a cualquier usuario (incluso otro ADMIN)
         if (requester.getRole() == Role.ADMIN) {
             userRepo.delete(toDelete);
             return "Usuario '" + usernameToDelete + "' eliminado con éxito por ADMIN.";
         }
 
-        // Caso contrario: no autorizado
         return "No autorizado para eliminar al usuario '" + usernameToDelete + "'.";
     }
+
 
 
     public String updateUserByUsername(String username, UserUpdateDTO updatedUserData) {
