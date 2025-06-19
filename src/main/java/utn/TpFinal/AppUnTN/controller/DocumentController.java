@@ -33,7 +33,7 @@ public class DocumentController {
         this.userService = userService;
     }
 
-    // Agregar documento (multipart/form-data)
+    // Agregar documento
     @PostMapping("/add")
     public ResponseEntity<?> addDocument(
             @RequestParam("file") MultipartFile file,
@@ -57,7 +57,7 @@ public class DocumentController {
             doc.setAuthor(user);
 
             Document savedDoc = documentService.guardar(doc);
-            // Mapear a DTO para devolver solo datos necesarios
+
             DocumentResponseDTO dto = documentService.mapToDTO(savedDoc);
             return ResponseEntity.ok(dto);
 

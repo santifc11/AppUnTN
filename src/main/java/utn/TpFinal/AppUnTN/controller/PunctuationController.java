@@ -7,10 +7,8 @@ import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.*;
-import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
-import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.PunctuationService;
 import utn.TpFinal.AppUnTN.service.UserService;

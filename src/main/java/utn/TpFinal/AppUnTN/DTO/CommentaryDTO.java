@@ -15,7 +15,7 @@ public class CommentaryDTO {
     private String content;
     private String authorUsername;
     private LocalDate creationDate;
-    private boolean destacado; // ✅ nuevo campo
+    private boolean destacado;
 
     public static CommentaryDTO fromEntity(Commentary c) {
         CommentaryDTO dto = new CommentaryDTO();
@@ -23,7 +23,7 @@ public class CommentaryDTO {
         dto.setContent(c.getContent());
         dto.setAuthorUsername(c.getAuthor().getUsername());
         dto.setCreationDate(c.getCreationDate());
-        dto.setDestacado(c.isDestacado()); // ✅ seteo del nuevo campo
+        dto.setDestacado(c.isDestacado());
         return dto;
     }
 }

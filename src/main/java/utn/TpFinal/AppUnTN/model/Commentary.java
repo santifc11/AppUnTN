@@ -18,7 +18,7 @@ public class Commentary {
     private String content;
 
     @CreationTimestamp
-    private LocalDate creationDate; // solo la fecha
+    private LocalDate creationDate; //solo la fecha.
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)

@@ -137,8 +137,32 @@ a.btn-outline {
 </div>
 
 <script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get("role");
+  const roleSelect = document.querySelector("select[name='role']");
+
+  if (roleParam === "ADMIN") {
+    if (![...roleSelect.options].some(opt => opt.value === "ADMIN")) {
+      const adminOption = document.createElement("option");
+      adminOption.value = "ADMIN";
+      adminOption.textContent = "Administrador";
+      roleSelect.appendChild(adminOption);
+    }
+
+    roleSelect.value = "ADMIN";
+    roleSelect.disabled = true;
+  }
+
   document.getElementById("registerForm").addEventListener("submit", async function (event) {
     event.preventDefault();
+
+    if (roleSelect.disabled) {
+      const hiddenRole = document.createElement("input");
+      hiddenRole.type = "hidden";
+      hiddenRole.name = "role";
+      hiddenRole.value = "ADMIN";
+      this.appendChild(hiddenRole);
+    }
 
     const formData = new FormData(this);
     const data = Object.fromEntries(formData.entries());
@@ -169,42 +193,5 @@ a.btn-outline {
     }
   });
 </script>
-<script>
-  // Detectar parámetro role en la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const roleParam = urlParams.get("role");
-
-  const roleSelect = document.querySelector("select[name='role']");
-
-  if (roleParam === "ADMIN") {
-    // Setear valor ADMIN y bloquear el select para que no se cambie
-    roleSelect.value = "ADMIN";
-
-    // Crear opción ADMIN si no existe para que se muestre bien en el select
-    if (![...roleSelect.options].some(opt => opt.value === "ADMIN")) {
-      const adminOption = document.createElement("option");
-      adminOption.value = "ADMIN";
-      adminOption.textContent = "Administrador";
-      roleSelect.appendChild(adminOption);
-      roleSelect.value = "ADMIN";
-    }
-
-    roleSelect.disabled = true;
-  }
-
-  // Form submit: si el select está deshabilitado, aseguramos que role ADMIN sea enviado
-  document.getElementById("registerForm").addEventListener("submit", function (event) {
-    if (roleSelect.disabled) {
-      // Como select está disabled, no se envía su valor, por eso lo agregamos manualmente
-      const hiddenRole = document.createElement("input");
-      hiddenRole.type = "hidden";
-      hiddenRole.name = "role";
-      hiddenRole.value = "ADMIN";
-      this.appendChild(hiddenRole);
-    }
-  });
-</script>
-
-
 </body>
 </html>

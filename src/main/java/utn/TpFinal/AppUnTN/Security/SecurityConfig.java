@@ -1,6 +1,5 @@
 package utn.TpFinal.AppUnTN.Security;
 
-import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -69,7 +68,10 @@ public class SecurityConfig {
                                         "/document_preview.html",
                                         "/profile.html",
                                         "/admin_admins.html",
-                                        "/admin_usuarios.html"
+                                        "/admin_usuarios.html",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui.html"
                                 ).permitAll()
 
                                 // Endpoints protegidos (JWT necesario)

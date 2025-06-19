@@ -14,8 +14,8 @@ import java.util.List;
 public class PunctuationService {
 
     private final PunctuationRepository punctuationRepository;
-    private final UserRepository userRepository;       // <-- necesario para buscar al user por username
-    private final DocumentRepository documentRepository; // <-- necesario para buscar el documento
+    private final UserRepository userRepository;
+    private final DocumentRepository documentRepository;
 
     @Autowired
     public PunctuationService(PunctuationRepository punctuationRepository,

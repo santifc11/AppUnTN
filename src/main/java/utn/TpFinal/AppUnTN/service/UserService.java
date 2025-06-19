@@ -123,7 +123,6 @@ public class UserService {
                         existingUser.setAbout(updatedUserData.getAbout());
                     }
 
-                    // No actualizamos username ni role
                     userRepo.save(existingUser);
                     return "Usuario '" + username + "' actualizado con éxito.";
                 })
@@ -150,7 +149,6 @@ public class UserService {
 
                     List<Subject> currentSubjects = user.getSubjects();
 
-                    // Agregamos solo las materias que no estén ya presentes
                     for (Subject subject : subjects) {
                         if (!currentSubjects.contains(subject)) {
                             currentSubjects.add(subject);
