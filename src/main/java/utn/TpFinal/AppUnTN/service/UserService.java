@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import utn.TpFinal.AppUnTN.DTO.UserAdminDTO;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.Exceptions.UserAlreadyExistsException;
 import utn.TpFinal.AppUnTN.model.Role;
@@ -15,6 +16,7 @@ import utn.TpFinal.AppUnTN.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -50,6 +52,18 @@ public class UserService {
 
     public List<User> readAll() {
         return userRepo.findAll();
+    }
+
+    public List<UserAdminDTO> getAllUsersDTO() {
+        return userRepo.findAll().stream()
+                .map(u -> new UserAdminDTO(
+                        u.getUsername(),
+                        u.getName(),
+                        u.getLastname(),
+                        u.getMail(),
+                        u.getRole().toString()
+                ))
+                .collect(Collectors.toList());
     }
 
 

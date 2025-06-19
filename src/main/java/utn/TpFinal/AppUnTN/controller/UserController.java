@@ -19,7 +19,7 @@ import utn.TpFinal.AppUnTN.service.UserService;
 import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -43,8 +43,8 @@ public class UserController {
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.readAll();
+    public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
+        List<UserAdminDTO> users = userService.getAllUsersDTO();
         return ResponseEntity.ok(users);
     }
 
@@ -68,7 +68,7 @@ public class UserController {
         } catch (UnauthorizedActionException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()); // 💥 nuevo caso si tiene docs
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error inesperado.");

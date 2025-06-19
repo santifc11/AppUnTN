@@ -67,7 +67,9 @@ public class SecurityConfig {
                                         "/resume_upload.html",
                                         "/documents.html",
                                         "/document_preview.html",
-                                        "/profile.html"
+                                        "/profile.html",
+                                        "/admin_admins.html",
+                                        "/admin_usuarios.html"
                                 ).permitAll()
 
                                 // Endpoints protegidos (JWT necesario)
@@ -76,18 +78,11 @@ public class SecurityConfig {
                                         "/api/users/subjects/**",
                                         "/api/documents/**",
                                         "/api/punctuations/**",
-                                        "/api/commentaries/**"
-                                ).authenticated()
-
-                                // Admins solamente
-                                .requestMatchers(
+                                        "/api/commentaries/**",
                                         "/admin/**",
-                                        "/admin_admins.html",
-                                        "/admin_usuarios.html",
                                         "/api/users/getAllUsers",
                                         "/api/users/deleteUser"
-                                ).hasRole("ADMIN")
-
+                                ).authenticated()
                                 .anyRequest().authenticated()
 
                 )

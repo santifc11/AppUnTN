@@ -169,12 +169,12 @@
     document.getElementById("lastnameInput").value = data.lastname;
     document.getElementById("mailInput").value = username;
 
-    if (data.role === "ROLE_ADMIN") {
+    if (data.role === "ADMIN" || data.role === "ROLE_ADMIN") {
       document.getElementById("adminPanel").innerHTML = `
         <hr>
         <h4 class="mt-4">Panel de Administración</h4>
         <div class="d-flex flex-column gap-2">
-          <a href="/admin_usuarios.html" class="btn btn-danger">Dar de alta o baja usuarios</a>
+          <a href="/admin_usuarios.html" class="btn btn-danger">Dar de baja usuarios</a>
           <a href="/admin_admins.html" class="btn btn-warning">Dar de alta o baja administradores</a>
         </div>`;
     }
