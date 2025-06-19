@@ -24,6 +24,7 @@ public class DocumentResponseDTO {
         private Long id;
         private int value;
         private String authorUsername;
+        private boolean destacado;
     }
 
     @Data
@@ -33,5 +34,6 @@ public class DocumentResponseDTO {
         private String content;
         private String authorUsername;
         private LocalDate creationDate;
+        private boolean destacado;
     }
 }

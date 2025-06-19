@@ -22,7 +22,6 @@ public class CommentaryService {
     public Commentary guardar(Commentary c) {
         boolean esProfesor = c.getAuthor().getRole() == Role.PROFESSOR;
         boolean dictaMateria = c.getAuthor().getSubjects().contains(c.getDocument().getSubject());
-
         c.setDestacado(esProfesor && dictaMateria);
 
         return commentaryRepository.save(c);

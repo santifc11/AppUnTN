@@ -28,5 +28,5 @@ public class Commentary {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    private boolean destacado = false;
+    private boolean destacado;
 }

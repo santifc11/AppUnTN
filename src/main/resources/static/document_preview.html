@@ -13,6 +13,16 @@
           rel="stylesheet"
   />
   <style>
+    .comment-destacado {
+  font-weight: bold;
+}
+
+.star-destacada {
+  color: gold;
+  margin-left: 5px;
+  font-size: 1.2em;
+}
+
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -67,6 +77,7 @@
     .star.selected {
       color: gold;
     }
+
   </style>
 </head>
 <body>
@@ -184,36 +195,39 @@
         `;
 
         document.getElementById("puntuaciones").innerHTML = doc.punctuations
-          .map(
-            (p) => `
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><strong>${p.authorUsername}</strong>: ${p.value} ★</span>
-            ${
-              p.authorUsername === username
-                ? `<button class="btn btn-danger btn-sm" onclick="eliminarPuntuacion(${p.id})">Eliminar</button>`
-                : ""
-            }
-          </li>
-        `
-          )
-          .join("");
+  .map((p) => {
+    const estrellaDestacada = p.destacado ? '<span class="star-destacada">⭐</span>' : '★';
+    return `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span><strong>${p.authorUsername}</strong>: ${p.value} ${estrellaDestacada}</span>
+        ${
+          p.authorUsername === username
+            ? `<button class="btn btn-danger btn-sm" onclick="eliminarPuntuacion(${p.id})">Eliminar</button>`
+            : ""
+        }
+      </li>
+    `;
+  })
+  .join("");
 
         document.getElementById("comentarios").innerHTML = doc.commentaries
-          .map(
-            (c) => `
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div>
-              <strong>${c.authorUsername}</strong> (${c.creationDate}):<br>${c.content}
-            </div>
-            ${
-              c.authorUsername === username
-                ? `<button class="btn btn-danger btn-sm ms-2" onclick="eliminarComentario(${c.id})">Eliminar</button>`
-                : ""
-            }
-          </li>
-        `
-          )
-          .join("");
+  .map((c) => {
+    const claseDestacado = c.destacado ? "comment-destacado" : "";
+    return `
+      <li class="list-group-item d-flex justify-content-between align-items-start ${claseDestacado}">
+        <div>
+          <strong>${c.authorUsername}</strong> (${c.creationDate}):<br>${c.content}
+        </div>
+        ${
+          c.authorUsername === username
+            ? `<button class="btn btn-danger btn-sm ms-2" onclick="eliminarComentario(${c.id})">Eliminar</button>`
+            : ""
+        }
+      </li>
+    `;
+  })
+  .join("");
+
       })
       .catch((err) => {
         alert("Error al cargar la vista previa");

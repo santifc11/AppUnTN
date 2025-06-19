@@ -41,7 +41,8 @@ public class DocumentService {
                 .map(p -> new DocumentResponseDTO.PunctuationDTO(
                         p.getId(),
                         p.getValue(),
-                        p.getAuthor().getUsername()
+                        p.getAuthor().getUsername(),
+                        p.isDestacado()
                 )).toList();
 
         List<DocumentResponseDTO.CommentaryDTO> commentaryDTOs = document.getCommentaries().stream()
@@ -49,7 +50,8 @@ public class DocumentService {
                         c.getId(),
                         c.getContent(),
                         c.getAuthor().getUsername(),
-                        c.getCreationDate()
+                        c.getCreationDate(),
+                        c.isDestacado()
                 )).toList();
 
         return new DocumentResponseDTO(
