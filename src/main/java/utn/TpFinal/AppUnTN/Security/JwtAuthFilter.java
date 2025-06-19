@@ -14,48 +14,43 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
-
-@Component // Marca esta clase como un Bean para que Spring pueda inyectarla
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JwtService jwtService; // Servicio para validar y extraer datos del token
+    private JwtService jwtService;
 
     @Autowired
-    private UserDetailsService userDetailsService; // Servicio que carga usuarios desde la BD
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getServletPath();
+
         List<String> publicPaths = List.of("/api/auth", "/api/users/register");
 
         if (publicPaths.stream().anyMatch(path::startsWith)) {
+            System.out.println("Ruta pública detectada, no se requiere token: " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extraemos el encabezado Authorization (esperamos: Bearer token)
         final String authHeader = request.getHeader("Authorization");
 
-        // Si no hay token o no empieza con Bearer, continúa sin autenticar
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extraemos el token sin el prefijo "Bearer "
         String jwtToken = authHeader.substring(7);
-        String username = jwtService.extractUsername(jwtToken); // Método del servicio para extraer el username
+        String username = jwtService.extractUsername(jwtToken);
 
-        // Si el usuario está en el token y no está ya autenticado
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            // Validamos el token
             if (jwtService.isTokenValid(jwtToken, userDetails)) {
-                // Creamos la autenticación y la colocamos en el contexto de seguridad
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -65,10 +60,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                // Logs para debugging
+                System.out.println("Autenticación establecida para usuario: " + username);
+                System.out.println("Roles asignados: " + userDetails.getAuthorities());
+            } else {
+                System.out.println("Token inválido para el usuario: " + username);
+            }
+        } else {
+            if (username == null) {
+                System.out.println("No se pudo extraer username del token");
+            } else {
+                System.out.println("Usuario ya autenticado en contexto: " + username);
             }
         }
 
-        // Continuamos con el siguiente filtro
         filterChain.doFilter(request, response);
     }
 }

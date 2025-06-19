@@ -4,19 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
-import utn.TpFinal.AppUnTN.DTO.UsernameRequest;
+import utn.TpFinal.AppUnTN.DTO.*;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
 
-@Controller //estaba@RestController pero lo tuve que cambiar para que entre html.
+@Controller
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -28,19 +26,13 @@ public class UserController {
         this.userService=userService;
     }
 
-   /* @PostMapping(
-            value = "/register",
-            consumes = {"application/json", "application/x-www-form-urlencoded"}
-    )
-    public ResponseEntity<User> register(@RequestBody(required = false) User userFromJson,
-                                         @ModelAttribute User userFromForm) {
-        User user = userFromJson != null ? userFromJson : userFromForm;
-        return ResponseEntity.ok(userService.register(user));
-    }*/
-
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        return ResponseEntity.ok(userService.register(user));
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            return ResponseEntity.ok(userService.register(user));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @GetMapping("/getAllUsers")
@@ -65,9 +57,6 @@ public class UserController {
         }
     }
 
-
-
-
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -81,19 +70,37 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName(); // extrae el nombre de usuario del token JWT
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No estás autenticado");
+        }
+
+        String username = authentication.getName();
         return userService.findByUsername(username)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/subjects/get")
+    public ResponseEntity<List<Subject>> getSubjectsOfProfessor(Authentication auth) {
+        String username = auth.getName();
+        List<Subject> subjects = userService.getSubjectsOfProfessor(username);
+        return ResponseEntity.ok(subjects);
+    }
 
+    @PutMapping("/subjects/update")
+    public ResponseEntity<String> updateSubjects(Authentication auth, @RequestBody SubjectsDTO dto) {
+        String username = auth.getName();
+        String resultado = userService.updateSubjects(username, dto.getSubjects());
+        return ResponseEntity.ok(resultado);
+    }
 
-
-
-
-
+    @DeleteMapping("/subjects/delete")
+    public ResponseEntity<String> deleteSubject(Authentication auth, @RequestBody FilterSubjectDTO dto) {
+        String username = auth.getName();
+        String result = userService.deleteSubject(username, dto.getSubject());
+        return ResponseEntity.ok(result);
+    }
 
 }
 

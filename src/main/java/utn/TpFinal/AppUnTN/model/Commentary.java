@@ -27,4 +27,6 @@ public class Commentary {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
+
+    private boolean destacado = false;
 }

@@ -74,9 +74,15 @@ public class CommentaryController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteCommentary(@RequestBody IdRequest idRequest) {
-        commentaryService.eliminar(idRequest.getId());
-        return ResponseEntity.ok("Comentario eliminado correctamente");
+    public ResponseEntity<String> deleteCommentary(@RequestBody IdRequest idRequest,
+                                                   Authentication authentication) {
+        String username = authentication.getName();
+        try {
+            commentaryService.eliminar(idRequest.getId(), username);
+            return ResponseEntity.ok("Comentario eliminado correctamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 }
 

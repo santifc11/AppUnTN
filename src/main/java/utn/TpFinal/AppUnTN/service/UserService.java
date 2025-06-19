@@ -1,10 +1,12 @@
 package utn.TpFinal.AppUnTN.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 
@@ -25,6 +27,10 @@ public class UserService {
 
     //Le asigna un Id al user y lo guarda en la bdd.
     public User register(User user){
+        if (userRepo.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("El nombre de usuario ya está en uso.");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -41,7 +47,7 @@ public class UserService {
         return userRepo.findAll();
     }
 
-
+    @PreAuthorize("hasRole('ADMIN') or #usernameToDelete == authentication.name")
     public String deleteUser(String usernameRequester, String usernameToDelete) {
         Optional<User> requesterOpt = userRepo.findByUsername(usernameRequester);
         Optional<User> toDeleteOpt = userRepo.findByUsername(usernameToDelete);
@@ -107,8 +113,63 @@ public class UserService {
         return userRepo.findByUsername(username);
     }
 
+    public List<Subject> getSubjectsOfProfessor(String username) {
+        return userRepo.findByUsername(username)
+                .filter(user -> user.getRole() == Role.PROFESSOR)
+                .map(User::getSubjects)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado o no es profesor"));
+    }
 
+    public String updateSubjects(String username, List<Subject> subjects) {
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    if (user.getRole() != Role.PROFESSOR) {
+                        throw new RuntimeException("Solo los profesores pueden tener materias asignadas");
+                    }
 
+                    List<Subject> currentSubjects = user.getSubjects();
 
+                    // Agregamos solo las materias que no estén ya presentes
+                    for (Subject subject : subjects) {
+                        if (!currentSubjects.contains(subject)) {
+                            currentSubjects.add(subject);
+                        }
+                    }
+
+                    user.setSubjects(currentSubjects);
+                    userRepo.save(user);
+                    return "Materias agregadas correctamente";
+                })
+                .orElse("Usuario no encontrado");
+    }
+
+    public String deleteSubject(String username, String subjectStr) {
+        Subject subject;
+
+        try {
+            subject = Subject.valueOf(subjectStr.toUpperCase()); // Convierte a mayúsculas para mayor tolerancia
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return "Materia inválida: " + subjectStr;
+        }
+
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    if (user.getRole() != Role.PROFESSOR) {
+                        throw new RuntimeException("Solo los profesores pueden tener materias asignadas");
+                    }
+
+                    List<Subject> subjects = user.getSubjects();
+
+                    if (subjects.contains(subject)) {
+                        subjects.remove(subject);
+                        user.setSubjects(subjects);
+                        userRepo.save(user);
+                        return "Materia eliminada correctamente";
+                    } else {
+                        return "El profesor no tiene asignada la materia: " + subject;
+                    }
+                })
+                .orElse("Usuario no encontrado");
+    }
 }
 

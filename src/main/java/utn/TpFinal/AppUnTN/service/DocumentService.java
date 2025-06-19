@@ -6,6 +6,7 @@ import utn.TpFinal.AppUnTN.DTO.CommentaryDTO;
 import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
 import utn.TpFinal.AppUnTN.DTO.PunctuationDTO;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 
 import java.time.LocalDate;
@@ -56,12 +57,18 @@ public class DocumentService {
                 document.getId(),
                 document.getTitle(),
                 document.getDescription(),
+                document.getSubject().toString(),
                 document.getFileType(),
                 document.getUploadDate(),
                 document.getAuthor().getUsername(),
                 punctuationDTOs,
                 commentaryDTOs
         );
+    }
+
+    public List<Document> findBySubject(Subject subject){
+        return documentRepository.findBySubject(subject);
+
     }
 
 

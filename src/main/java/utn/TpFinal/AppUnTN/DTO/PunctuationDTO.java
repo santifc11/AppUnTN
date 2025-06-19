@@ -12,12 +12,14 @@ public class PunctuationDTO {
     private Long id;
     private int value;
     private String authorUsername;
+    private boolean destacado; // nuevo
 
     public static PunctuationDTO fromEntity(Punctuation p) {
-        return new PunctuationDTO(
-                p.getId(),
-                p.getValue(),
-                p.getAuthor().getUsername()
-        );
+        PunctuationDTO dto = new PunctuationDTO();
+        dto.setId(p.getId());
+        dto.setValue(p.getValue());
+        dto.setAuthorUsername(p.getAuthor().getUsername());
+        dto.setDestacado(p.isDestacado()); // nuevo
+        return dto;
     }
 }

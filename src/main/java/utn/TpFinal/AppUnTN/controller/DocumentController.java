@@ -1,19 +1,21 @@
 package utn.TpFinal.AppUnTN.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import utn.TpFinal.AppUnTN.DTO.IdRequest;
-import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
+import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +39,7 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
+            @RequestParam("subject") String subject,
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
@@ -47,6 +50,7 @@ public class DocumentController {
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
+            doc.setSubject(Subject.valueOf(subject));
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());
@@ -63,17 +67,33 @@ public class DocumentController {
         }
     }
 
-    // Eliminar documento por id, con id en RequestBody para no pasar en URL
+    // Eliminar documento por id, con id en RequestBody para no pasar en URL, administradores o autores lo pueden borrar
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteDocument(@RequestBody IdRequest idRequest) {
+    public ResponseEntity<String> deleteDocument(@RequestBody IdRequest idRequest, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
         Long id = idRequest.getId();
         Optional<Document> docOpt = documentService.buscarPorId(id);
+
         if (docOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Documento no encontrado");
         }
+
+        Document doc = docOpt.get();
+
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+        boolean isAuthor = doc.getAuthor().getId().equals(user.getId());
+
+        if (!(isAdmin || isAuthor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tenés permisos para eliminar este documento.");
+        }
+
         documentService.eliminar(id);
         return ResponseEntity.ok("Documento eliminado con éxito");
     }
+
 
     // Obtener todos los documentos en DTO
     @GetMapping("/getAll")
@@ -98,4 +118,77 @@ public class DocumentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Documento no encontrado");
         }
     }
+
+
+
+    @PostMapping("/filterBySubject")
+    public ResponseEntity<List<DocumentResponseDTO>> filterBySubject(@RequestBody FilterSubjectDTO filter) {
+        try {
+            Subject subject = Subject.valueOf(filter.getSubject().toUpperCase());
+            List<Document> documents = documentService.findBySubject(subject);
+
+            List<DocumentResponseDTO> response = documents.stream()
+                    .map(documentService::mapToDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+    }
+
+    @PostMapping("/download")
+    public ResponseEntity<byte[]> downloadFileById(@RequestBody IdRequest idRequest) {
+        return documentService.buscarPorId(idRequest.getId())
+                .map(document -> {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.parseMediaType(document.getFileType()));
+                    headers.setContentDisposition(ContentDisposition.attachment()
+                            .filename(document.getTitle() + "." + document.getFileType())
+                            .build());
+                    return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateDocument(
+            @RequestBody @Valid DocumentUpdateDTO documentUpdateDTO,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No tenés permisos para modificar documentos.");
+        }
+
+        Optional<Document> existingOpt = documentService.buscarPorId(documentUpdateDTO.getId());
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Documento no encontrado");
+        }
+
+        Document existing = existingOpt.get();
+
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+        boolean isAuthor = existing.getAuthor().getId().equals(user.getId());
+
+        if (!(isAdmin || isAuthor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No tenés permisos para modificar este documento.");
+        }
+
+        existing.setTitle(documentUpdateDTO.getTitle());
+        existing.setDescription(documentUpdateDTO.getDescription());
+        existing.setSubject(documentUpdateDTO.getSubject());
+
+        Document saved = documentService.guardar(existing);
+
+        return ResponseEntity.ok(documentService.mapToDTO(saved));
+    }
+
 }
