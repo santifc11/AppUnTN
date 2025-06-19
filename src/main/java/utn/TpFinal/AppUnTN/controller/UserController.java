@@ -10,27 +10,36 @@ import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.Exceptions.UnauthorizedActionException;
 import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
+import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
+import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
 
-@Controller //estaba@RestController pero lo tuve que cambiar para que entre html.
+@Controller
 @RequestMapping("/api/users")
 public class UserController {
 
 
     private final UserService userService;
+    private final DocumentService documentService;
 
     @Autowired
-    public UserController(UserService userService){
-        this.userService=userService;
+    public UserController(UserService userService, DocumentService documentService) {
+        this.userService = userService;
+        this.documentService = documentService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        return ResponseEntity.ok(userService.register(user));
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            return ResponseEntity.ok(userService.register(user));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @GetMapping("/getAllUsers")
@@ -80,8 +89,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName(); // extrae el nombre de usuario del token JWT
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No estás autenticado");
+        }
+
+        String username = authentication.getName();
         return userService.findByUsername(username)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -107,6 +120,32 @@ public class UserController {
         String result = userService.deleteSubject(username, dto.getSubject());
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/profile")
+    public ResponseEntity<?> getUserProfile(@RequestBody UsernameRequest request) {
+        String username = request.getUsername();
+        Optional<User> userOpt = userService.findByUsername(username);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+
+        User user = userOpt.get();
+        List<Document> docs = documentService.findByAuthor(user);
+
+        UserProfileDTO profile = new UserProfileDTO(
+                user.getName(),
+                user.getLastname(),
+                user.getCity(),
+                user.getAbout(),
+                user.getRole().name(),
+                user.getSubjects().stream().map(Enum::name).toList(),
+                docs.stream().map(documentService::mapToDTO).toList()
+        );
+
+        return ResponseEntity.ok(profile);
+    }
+
 
 }
 

@@ -5,27 +5,68 @@ import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
 import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 import utn.TpFinal.AppUnTN.repository.PunctuationRepository;
+import utn.TpFinal.AppUnTN.repository.UserRepository;
 
 import java.util.List;
 @Service
 public class PunctuationService {
 
     private final PunctuationRepository punctuationRepository;
+    private final UserRepository userRepository;       // <-- necesario para buscar al user por username
+    private final DocumentRepository documentRepository; // <-- necesario para buscar el documento
 
     @Autowired
-    public PunctuationService(PunctuationRepository punctuationRepository) {
+    public PunctuationService(PunctuationRepository punctuationRepository,
+                              UserRepository userRepository,
+                              DocumentRepository documentRepository) {
         this.punctuationRepository = punctuationRepository;
+        this.userRepository = userRepository;
+        this.documentRepository = documentRepository;
     }
 
-    public Punctuation guardar(Punctuation p) {
-        boolean esProfesor = p.getAuthor().getRole() == Role.PROFESSOR;
-        boolean dictaMateria = p.getAuthor().getSubjects().contains(p.getDocument().getSubject());
+    public String guardar(Long documentId, String username, int value) {
+        if (value < 1 || value > 5) {
+            throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5");
+        }
 
-        p.setDestacado(esProfesor && dictaMateria);
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        return punctuationRepository.save(p);
+        var document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+
+        var existenteOpt = punctuationRepository.findByDocumentAndAuthor(document, user);
+
+        if (existenteOpt.isPresent()) {
+            var existente = existenteOpt.get();
+            existente.setValue(value);
+
+            boolean esProfesor = user.getRole() == Role.PROFESSOR;
+            boolean dictaMateria = user.getSubjects().contains(document.getSubject());
+
+            existente.setDestacado(esProfesor && dictaMateria);
+
+            punctuationRepository.save(existente);
+            return "Puntuación actualizada correctamente.";
+        }
+
+        // Si no existe, crear nueva puntuación
+        var nueva = new Punctuation();
+        nueva.setAuthor(user);
+        nueva.setDocument(document);
+        nueva.setValue(value);
+
+        boolean esProfesor = user.getRole() == Role.PROFESSOR;
+        boolean dictaMateria = user.getSubjects().contains(document.getSubject());
+        nueva.setDestacado(esProfesor && dictaMateria);
+
+        punctuationRepository.save(nueva);
+        return "Puntuación registrada correctamente.";
     }
+
+
 
     public List<Punctuation> listarPorDocumentoOrdenado(Document document) {
         return punctuationRepository.findByDocumentOrderByDestacadoDesc(document);
@@ -41,7 +82,14 @@ public class PunctuationService {
         return punctuationRepository.save(puntuacion);
     }
 
-    public void eliminar(Long id) {
+    public void eliminar(Long id, String username) {
+        Punctuation puntuacion = punctuationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Puntuación no encontrada"));
+
+        if (!puntuacion.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("No estás autorizado para eliminar esta puntuación");
+        }
+
         punctuationRepository.deleteById(id);
     }
 
@@ -52,4 +100,5 @@ public class PunctuationService {
                 .orElse(0.0);
     }
 }
+
 

@@ -1,6 +1,7 @@
 package utn.TpFinal.AppUnTN.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -34,23 +35,17 @@ public class PunctuationController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<PunctuationDTO> addPunctuation(@RequestBody PunctuationRequestDTO request,
-                                                         Authentication authentication) {
+    public ResponseEntity<String> addPunctuation(@RequestBody PunctuationRequestDTO request,
+                                                 Authentication authentication) {
         String username = authentication.getName();
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        String resultado = punctuationService.guardar(request.getDocumentId(), username, request.getValue());
 
-        Document document = documentService.buscarPorId(request.getDocumentId())
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
-
-        Punctuation punctuation = new Punctuation();
-        punctuation.setValue(request.getValue());
-        punctuation.setDocument(document);
-        punctuation.setAuthor(user);
-
-        Punctuation saved = punctuationService.guardar(punctuation);
-        return ResponseEntity.ok(PunctuationDTO.fromEntity(saved));
+        if (resultado.contains("Ya puntuaste")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(resultado);
+        }
+        return ResponseEntity.ok(resultado);
     }
+
 
 
     @PostMapping("/getByDocument")
@@ -72,9 +67,15 @@ public class PunctuationController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deletePunctuation(@RequestBody IdRequest idRequest) {
-        punctuationService.eliminar(idRequest.getId());
-        return ResponseEntity.ok("Puntuacion eliminada correctamente");
+    public ResponseEntity<String> deletePunctuation(@RequestBody IdRequest idRequest,
+                                                    Authentication authentication) {
+        String username = authentication.getName();
+        try {
+            punctuationService.eliminar(idRequest.getId(), username);
+            return ResponseEntity.ok("Puntuación eliminada correctamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/average")

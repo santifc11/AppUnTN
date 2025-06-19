@@ -1,6 +1,7 @@
 package utn.TpFinal.AppUnTN.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class UserService {
         if (userRepo.findByUsername(user.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException("El nombre de usuario ya está registrado.");
         }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -50,7 +52,9 @@ public class UserService {
         return userRepo.findAll();
     }
 
-@Transactional
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or #usernameToDelete == authentication.name")
     public String deleteUser(String usernameRequester, String usernameToDelete) {
         Optional<User> requesterOpt = userRepo.findByUsername(usernameRequester);
         Optional<User> toDeleteOpt = userRepo.findByUsername(usernameToDelete);
@@ -174,11 +178,5 @@ public class UserService {
                 })
                 .orElse("Usuario no encontrado");
     }
-
-
-
-
-
-
 }
 
