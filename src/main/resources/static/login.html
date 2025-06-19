@@ -124,9 +124,13 @@
       return res.json();
     })
     .then(data => {
-      localStorage.setItem("jwt", data.token);
-      window.location.href = "/index_usuario_perfil.html";
-    })
+  localStorage.setItem("jwt", data.token);
+  console.log("Token guardado:", localStorage.getItem("jwt"));
+  setTimeout(() => {
+    console.log("Redireccionando...");
+    window.location.href = "/index_usuario_perfil.html";
+  }, 100);
+})
     .catch(() => {
       document.getElementById("error").style.display = "block";
     });

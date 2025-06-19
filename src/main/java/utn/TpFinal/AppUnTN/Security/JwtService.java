@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +19,7 @@ import java.util.List;
 public class JwtService {
 
     // Clave secreta (debe ser segura y lo suficientemente larga)
-    private static final String SECRET_KEY = "4c697665732d7365637265742d6a77642d31323334353637383930";
+    private static final String SECRET_KEY = "q7oXcF4NVkXLX6kK0rZKvSh4U3nU4nN92nFcW6+rkXs=";
 
     // Genera un token para un usuario autenticado
     public String generateToken(UserDetails userDetails) {
@@ -74,7 +77,7 @@ public class JwtService {
 
     // Devuelve la clave usada para firmar/validar el token
     private Key getSignInKey() {
-        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8); // Decodifica la clave (base64)
-        return Keys.hmacShaKeyFor(keyBytes); // Genera la clave HMAC con SHA-256
+        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(SECRET_KEY);
+        return io.jsonwebtoken.security.Keys.hmacShaKeyFor(keyBytes);
     }
 }

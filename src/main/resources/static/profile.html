@@ -121,31 +121,51 @@
 
 <script>
   const token = localStorage.getItem("jwt");
-  if (!token) window.location.href = "/login.html";
+  if (!token) {
+    alert("No se encontró token, redirigiendo al login...");
+    window.location.href = "/login.html";
+  }
 
-  fetch("/api/users/me", {
-    headers: { "Authorization": "Bearer " + token }
+  function getUsernameFromToken(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const username = getUsernameFromToken(token);
+
+  fetch("/api/users/profile", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ username })
   })
   .then(res => {
     if (!res.ok) throw new Error("No autorizado");
     return res.json();
   })
   .then(data => {
-    document.getElementById("username").textContent = data.username;
+    document.getElementById("username").textContent = `${data.name} ${data.lastname}`;
     document.getElementById("userDetails").innerHTML = `
       <ul class="list-group">
         <li class="list-group-item"><strong>Nombre:</strong> ${data.name}</li>
         <li class="list-group-item"><strong>Apellido:</strong> ${data.lastname}</li>
-        <li class="list-group-item"><strong>Email:</strong> ${data.mail}</li>
+        <li class="list-group-item"><strong>Ciudad:</strong> ${data.city}</li>
+        <li class="list-group-item"><strong>Sobre mí:</strong> ${data.about}</li>
         <li class="list-group-item"><strong>Rol:</strong> ${data.role}</li>
       </ul>
     `;
 
     document.getElementById("nameInput").value = data.name;
     document.getElementById("lastnameInput").value = data.lastname;
-    document.getElementById("mailInput").value = data.mail;
+    document.getElementById("mailInput").value = username;
 
-    if (data.role === "ADMIN") {
+    if (data.role === "ROLE_ADMIN") {
       document.getElementById("adminPanel").innerHTML = `
         <hr>
         <h4 class="mt-4">Panel de Administración</h4>
@@ -155,9 +175,10 @@
         </div>`;
     }
 
-    if (data.role === "PROFESSOR") {
+    if (data.role === "ROLE_PROFESSOR") {
       cargarMateriasProfesor();
     }
+
   })
   .catch(() => {
     localStorage.removeItem("jwt");
@@ -185,7 +206,7 @@
           <select id="materiaSelect" class="form-select">
             <option value="">Seleccioná una materia</option>
             <option value="PROGRAMACION_I">Programación I</option>
-            <option value="ARQUITECTURA_Y_SISTEMAS_OPERATIVOS">Arquitectura de Sistemas Operativos</option>
+            <option value="ARQUITECTURA_Y_SISTEMAS_OPERATIVOS">Arquitectura y Sistemas Operativos</option>
             <option value="MATEMATICA">Matemática</option>
             <option value="ORGANIZACION_EMPRESARIAL">Organización Empresarial</option>
             <option value="PROGRAMACION_II">Programación II</option>
