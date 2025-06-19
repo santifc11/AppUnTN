@@ -10,7 +10,8 @@ import java.util.List;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Document {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -20,6 +21,7 @@ public class Document {
     private Subject subject;
 
     private String fileType;
+
     @Lob
     private byte[] data; // archivo binario
 

@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
    List<Document> findBySubject(Subject subject);
+   void deleteAllByAuthor(User author);
    List<Document> findByAuthor(User author);
 
 }
