@@ -32,7 +32,14 @@ public class CommentaryService {
         return commentaryRepository.findByDocumentOrderByDestacadoDescCreationDateDesc(document);
     }
 
-    public void eliminar(Long id) {
+    public void eliminar(Long id, String username) {
+        Commentary comentario = commentaryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comentario no encontrado"));
+
+        if (!comentario.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("No estás autorizado para eliminar este comentario");
+        }
+
         commentaryRepository.deleteById(id);
     }
 

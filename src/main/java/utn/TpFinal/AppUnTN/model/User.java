@@ -15,8 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
@@ -24,6 +23,7 @@ public class User implements UserDetails {
     private String name;
     private String lastname;
     private String mail;
+    @Column(unique = true)
     private String username;
     private String password;
     private String city;
@@ -61,4 +61,19 @@ public class User implements UserDetails {
     @CollectionTable(name = "user_subjects", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "subject")
     private List<Subject> subjects = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Document> documents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Commentary> commentaries = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Punctuation> punctuations = new ArrayList<>();
+
+
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
 }

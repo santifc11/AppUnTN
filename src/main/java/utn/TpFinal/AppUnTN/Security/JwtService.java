@@ -2,12 +2,14 @@ package utn.TpFinal.AppUnTN.Security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 
 
 @Service // Lo registra como un Bean de Spring
@@ -18,25 +20,41 @@ public class JwtService {
 
     // Genera un token para un usuario autenticado
     public String generateToken(UserDetails userDetails) {
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
         return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // El "dueño" del token (ej: nombre de usuario)
-                .claim("roles", userDetails.getAuthorities()) // Información adicional: los roles del usuario
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Cuándo fue generado
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Expira en 1 hora
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256) // Firma el token con HS256 y la clave secreta
-                .compact(); // Lo convierte a una cadena tipo JWT (header.payload.firma)
+                .setSubject(userDetails.getUsername())
+                .claim("roles", roles)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hora
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
+
 
     // Extrae el nombre de usuario del token
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        try {
+            return extractAllClaims(token).getSubject();
+        } catch (Exception e) {
+            return null; // o loggear
+        }
+    }
+    //Valida si el token es valido para un usuario especifico
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        try {
+            final String username = extractUsername(token);
+            return username != null &&
+                    username.equals(userDetails.getUsername()) &&
+                    !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    // Valida si el token es válido para un usuario específico
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
 
     // Revisa si el token ha expirado
     private boolean isTokenExpired(String token) {
