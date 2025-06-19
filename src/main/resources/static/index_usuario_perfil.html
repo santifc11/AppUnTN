@@ -230,4 +230,15 @@
 </section>
 
 </body>
+
+<script>
+  const token = localStorage.getItem("jwt");
+  if (!token) {
+    alert("Token no encontrado. Redirigiendo al login...");
+    window.location.href = "/login.html";
+  }
+  console.log("Token en index:", localStorage.getItem("jwt"));
+</script>
+
+
 </html>
