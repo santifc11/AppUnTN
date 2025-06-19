@@ -62,6 +62,27 @@
   </style>
 </head>
 <body>
+<script>
+  const token = localStorage.getItem("jwt");
+
+  if (!token) {
+    alert("Token no encontrado. Redirigiendo al login...");
+    window.location.href = "/login.html";
+  }
+
+  function getUsernameFromToken(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub;
+    } catch (e) {
+      console.error("Error decodificando JWT", e);
+      return null;
+    }
+  }
+
+  const username = getUsernameFromToken(token);
+</script>
+
 
 <header>
   <div class="logo">
@@ -120,23 +141,6 @@
 </div>
 
 <script>
-  const token = localStorage.getItem("jwt");
-  if (!token) {
-    alert("No se encontró token, redirigiendo al login...");
-    window.location.href = "/login.html";
-  }
-
-  function getUsernameFromToken(token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  const username = getUsernameFromToken(token);
-
   fetch("/api/users/profile", {
     method: "POST",
     headers: {
@@ -178,7 +182,6 @@
     if (data.role === "ROLE_PROFESSOR") {
       cargarMateriasProfesor();
     }
-
   })
   .catch(() => {
     localStorage.removeItem("jwt");

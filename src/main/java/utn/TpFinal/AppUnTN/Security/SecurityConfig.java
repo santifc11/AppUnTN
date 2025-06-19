@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,64 +24,83 @@ import utn.TpFinal.AppUnTN.service.CustomUserDetailsService;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-
-
     @Bean
     public PasswordEncoder passwordEncoder () {
         return new BCryptPasswordEncoder();
-
     }
 
-        @Bean
-        public AuthenticationProvider authenticationProvider (UserDetailsService userDetailsService){
-            DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-            provider.setUserDetailsService(userDetailsService);
-            provider.setPasswordEncoder(passwordEncoder());
-            return provider;
-        }
-
-        @Bean
-        public AuthenticationManager authenticationManager (AuthenticationConfiguration config) throws Exception {
-            return config.getAuthenticationManager();
-        }
-
-        // Configuración del filtro de seguridad para proteger rutas y validar JWT
-        @Bean
-        public SecurityFilterChain securityFilterChain(
-                HttpSecurity http,
-                JwtAuthFilter jwtAuthFilter,
-                UserDetailsService userDetailsService) throws Exception {
-
-            return http
-                    .csrf(csrf -> csrf.disable())
-                    .authorizeHttpRequests(auth -> auth
-                                    .requestMatchers(
-                                            "/",
-                                            "/index.html",
-                                            "/login.html",
-                                            "/register.html",
-                                            "/css/**",
-                                            "/js/**",
-                                            "/img/**",
-                                            "/favicon.ico",
-                                            "/api/auth/**", // solo login/register
-                                            "/api/users/register", "/profile.html", "/index_usuario_perfil.html", "/resume_upload.html", "/documents.html", "/document_preview.html"
-
-                                    ).permitAll()
-                                    .anyRequest().authenticated()// Todo lo demás requiere JWT válido
-                    )
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authenticationProvider(authenticationProvider(userDetailsService))
-                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                    .build();
-        }
-
-
+    @Bean
+    public AuthenticationProvider authenticationProvider (UserDetailsService userDetailsService){
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
     @Bean
-        public UserDetailsService userDetailsService () {
-            return new CustomUserDetailsService();
-        }
+    public AuthenticationManager authenticationManager (AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthFilter jwtAuthFilter,
+            UserDetailsService userDetailsService) throws Exception {
+
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                                // Público (registro, login, estáticos)
+                                .requestMatchers(
+                                        "/",
+                                        "/index.html",
+                                        "/login.html",
+                                        "/register.html",
+                                        "/css/**",
+                                        "/js/**",
+                                        "/img/**",
+                                        "/favicon.ico",
+                                        "/api/auth/**",
+                                        "/api/users/register",
+                                        "/index_usuario_perfil.html",
+                                        "/resume_upload.html",
+                                        "/documents.html",
+                                        "/document_preview.html",
+                                        "/profile.html"
+                                ).permitAll()
+
+                                // Endpoints protegidos (JWT necesario)
+                                .requestMatchers(
+                                        "/api/users/me",
+                                        "/api/users/subjects/**",
+                                        "/api/documents/**",
+                                        "/api/punctuations/**",
+                                        "/api/commentaries/**"
+                                ).authenticated()
+
+                                // Admins solamente
+                                .requestMatchers(
+                                        "/admin/**",
+                                        "/admin_admins.html",
+                                        "/admin_usuarios.html",
+                                        "/api/users/getAllUsers",
+                                        "/api/users/deleteUser"
+                                ).hasRole("ADMIN")
+
+                                .anyRequest().authenticated()
+
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider(userDetailsService))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService () {
+        return new CustomUserDetailsService();
+    }
 }
+
 

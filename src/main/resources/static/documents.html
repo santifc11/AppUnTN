@@ -48,6 +48,27 @@
   </style>
 </head>
 <body>
+<script>
+  const token = localStorage.getItem("jwt");
+
+  if (!token) {
+    alert("Token no encontrado. Redirigiendo al login...");
+    window.location.href = "/login.html";
+  }
+
+  function getUsernameFromToken(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub;
+    } catch (e) {
+      console.error("Error decodificando JWT", e);
+      return null;
+    }
+  }
+
+  const username = getUsernameFromToken(token);
+</script>
+
 
 <header>
   <div class="logo">
@@ -94,12 +115,6 @@
 </div>
 
 <script>
-  const token = localStorage.getItem("jwt");
-
-  if (!token) {
-    window.location.href = "/login.html";
-  }
-
   const documentList = document.getElementById("documentList");
   const filterSelect = document.getElementById("filterSelect");
 
@@ -126,10 +141,7 @@
           const item = document.createElement("a");
           item.className = "list-group-item list-group-item-action";
           item.href = "document_preview.html";
-item.onclick = () => {
-  localStorage.setItem("docIdSeleccionado", doc.id);
-};
-
+          item.onclick = () => localStorage.setItem("docIdSeleccionado", doc.id);
           item.innerHTML = `<strong>${doc.title}</strong><br>${doc.description}<br><small>${doc.subject}</small>`;
           documentList.appendChild(item);
         });
@@ -140,10 +152,7 @@ item.onclick = () => {
       });
   }
 
-  filterSelect.addEventListener("change", () => {
-    cargarDocumentos(filterSelect.value);
-  });
-
+  filterSelect.addEventListener("change", () => cargarDocumentos(filterSelect.value));
   cargarDocumentos();
 </script>
 
