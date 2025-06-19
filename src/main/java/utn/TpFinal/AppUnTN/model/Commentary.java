@@ -29,6 +29,4 @@ public class Commentary {
     private User author;
 
     private boolean destacado = false;
-
-
 }

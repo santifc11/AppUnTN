@@ -14,7 +14,7 @@ import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
 
-@Controller //estaba@RestController pero lo tuve que cambiar para que entre html.
+@Controller
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -27,8 +27,12 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        return ResponseEntity.ok(userService.register(user));
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            return ResponseEntity.ok(userService.register(user));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @GetMapping("/getAllUsers")
@@ -66,8 +70,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName(); // extrae el nombre de usuario del token JWT
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No estás autenticado");
+        }
+
+        String username = authentication.getName();
         return userService.findByUsername(username)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

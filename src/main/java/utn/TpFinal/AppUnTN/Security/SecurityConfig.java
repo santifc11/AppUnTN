@@ -53,38 +53,39 @@ public class SecurityConfig {
             return http
                     .csrf(csrf -> csrf.disable())
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(
-                                    "/", "/index.html", "/register.html",
-                                    "/css/**", "/js/**", "/img/**",
-                                    "/api/users/register",
-                                    "/api/auth/**",
-                                    "/login.html",
-                                    "/api/auth/login",
-                                    "/index_usuario_perfil.html",
-                                    "/resume_upload.html",
-                                    "/admin_admins.html",
-                                    "/admin_usuarios.html",
-                                    "/profile.html",
-                                    "/api/users/**",
-                                    "api/documents/**",
-                                    "api/punctuations/**",
-                                    "api/commentaries/**",
-                                    "/admin/**",
-                                    "/admin/*.html",
-                                    "/api/users/getAllUsers",
-                                    "/api/users/deleteUser",
-                                    "/api/users/me",
-                                    "/api/users/subjects/get",
-                                    "/api/users/subjects/update",
-                                    "/api/users/subjects/delete",
-                                    "/documents.html",
-                                    "/api/users/subjects/**",
-                                    "/document_preview.html"
+                                    .requestMatchers(
+                                            "/",
+                                            "/index.html",
+                                            "/login.html",
+                                            "/register.html",
+                                            "/css/**",
+                                            "/js/**",
+                                            "/img/**",
+                                            "/favicon.ico",
+                                            "/api/auth/**",
+                                            "/api/users/register",
+                                            "/index_usuario_perfil.html",
+                                            "/resume_upload.html",
+                                            "/documents.html",
+                                            "/document_preview.html",
+                                            "/profile.html",
+                                            "/admin/**",
+                                            "/admin_usuarios.html",
+                                            "/admin_admins.html"
+                                    ).permitAll()
 
-                            ).permitAll()
-                            //.requestMatchers( "/api/users/me").authenticated() // protegidos
-                            .anyRequest().authenticated()
-                    )
+                                    // Solo los endpoints API que requieren autenticación quedan acá
+                                    .requestMatchers(
+                                            "/api/users/me",
+                                            "/api/users/updateUser",
+                                            "/api/users/subjects/**",
+                                            "/api/documents/**",
+                                            "/api/punctuations/**",
+                                            "/api/commentaries/**"
+                                    ).authenticated()
+
+                                    .anyRequest().authenticated()
+                            )
 
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authenticationProvider(authenticationProvider(userDetailsService))
@@ -98,5 +99,5 @@ public class SecurityConfig {
             return new CustomUserDetailsService();
         }
 
-    }
+}
 
