@@ -10,5 +10,4 @@ public class   AppUnTnApplication {
 
 		SpringApplication.run(AppUnTnApplication.class, args);
 	}
-
 }
