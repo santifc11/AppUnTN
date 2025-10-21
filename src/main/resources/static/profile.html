@@ -115,7 +115,7 @@
   <div id="professorPanel" class="mt-4"></div>
 
   <!-- Seccion para editar el perfil -->
-  <div class="mt-5">
+  <div class="mt-5" >
     <h3 class="mb-3">Editar perfil</h3>
     <form id="updateForm" class="border p-3 rounded bg-white shadow-sm">
       <div class="mb-3">
@@ -168,7 +168,11 @@
 
     document.getElementById("nameInput").value = data.name;
     document.getElementById("lastnameInput").value = data.lastname;
-    document.getElementById("mailInput").value = username;
+    document.getElementById("mailInput").value = data.mail;
+
+    if (username === "Admin0") {
+        document.querySelector("div.mt-5 form#updateForm").parentElement.style.display = "none";
+    }
 
     if (data.role === "ADMIN" || data.role === "ROLE_ADMIN") {
       document.getElementById("adminPanel").innerHTML = `

@@ -11,6 +11,7 @@ import java.util.List;
 public class UserProfileDTO {
     private String name;
     private String lastname;
+    private String mail;
     private String city;
     private String about;
     private String role;

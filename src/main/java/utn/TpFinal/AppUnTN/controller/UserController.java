@@ -135,6 +135,7 @@ public class UserController {
         UserProfileDTO profile = new UserProfileDTO(
                 user.getName(),
                 user.getLastname(),
+                user.getMail(),
                 user.getCity(),
                 user.getAbout(),
                 user.getRole().name(),
