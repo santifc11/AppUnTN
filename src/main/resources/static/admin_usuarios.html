@@ -5,23 +5,95 @@
   <title>Administrar Usuarios - AppUnTN</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="icon" href="img/logoicono.ico" type="image/x-icon">
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .filtros input {
+      width: 160px;
+    }
+    .table td, .table th {
+      vertical-align: middle;
+    }
+    .actions-btn {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+    }
+    @media (max-width: 768px) {
+      .filtros input {
+        width: 100%;
+      }
+      .filtros {
+        justify-content: flex-start !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-light p-4">
+<body class="p-4">
+
+<script>
+  const token = localStorage.getItem("jwt");
+  if (!token) {
+    alert("Token no encontrado. Redirigiendo al login...");
+    window.location.href = "/login.html";
+  }
+
+  function getPayloadFromToken(token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      console.error("Error decodificando token:", e);
+      return null;
+    }
+  }
+
+  const payload = getPayloadFromToken(token);
+  const username = payload?.sub;
+  const role = payload?.role;
+</script>
+
 <div class="container">
-  <h2 class="mb-4">Gestión de Usuarios</h2>
-  <table class="table table-bordered table-hover">
-    <thead class="table-light">
-    <tr>
-      <th>Usuario</th>
-      <th>Nombre</th>
-      <th>Email</th>
-      <th>Rol</th>
-      <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody id="usuariosTable">
-    </tbody>
-  </table>
+  <h2 class="mb-4 text-center">Gestión de Usuarios</h2>
+
+  <!-- FILTROS -->
+  <div class="d-flex justify-content-between flex-wrap align-items-end gap-2 mb-3">
+    <div class="d-flex flex-wrap gap-2 filtros">
+      <div class="d-flex flex-column">
+        <label class="mb-1">Usuario</label>
+        <input type="text" id="filtroUsername" class="form-control form-control-sm" placeholder="Filtrar por usuario">
+      </div>
+      <div class="d-flex flex-column">
+        <label class="mb-1">Nombre</label>
+        <input type="text" id="filtroNombre" class="form-control form-control-sm" placeholder="Filtrar por nombre">
+      </div>
+      <div class="d-flex flex-column">
+        <label class="mb-1">Email</label>
+        <input type="text" id="filtroEmail" class="form-control form-control-sm" placeholder="Filtrar por email">
+      </div>
+      <div class="d-flex flex-column">
+        <label class="mb-1">Rol</label>
+        <input type="text" id="filtroRol" class="form-control form-control-sm" placeholder="Filtrar por rol">
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE USUARIOS -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover text-center">
+      <thead class="table-light">
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody id="usuariosTable"></tbody>
+    </table>
+  </div>
+
   <div class="mt-4 text-center">
     <button class="btn btn-secondary" onclick="window.location.href='/profile.html'">
       Volver al perfil
@@ -30,45 +102,86 @@
 </div>
 
 <script>
+  let usuarios = [];
+
+  // Cargar usuarios (alumnos y profesores)
   fetch("/api/users/getAllUsers", {
-    headers: {
-      "Authorization": "Bearer " + localStorage.getItem("jwt")
-    }
+    headers: { "Authorization": "Bearer " + token }
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error("Acceso no autorizado");
+    return res.json();
+  })
   .then(users => {
-    const table = document.getElementById("usuariosTable");
-    users
-      .filter(u => u.role === "STUDENT" || u.role === "PROFESSOR")
-      .forEach(user => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.name} ${user.lastname}</td>
-          <td>${user.mail}</td>
-          <td>${user.role}</td>
-          <td>
-            <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.username}')">
-              Eliminar
-            </button>
-          </td>
-        `;
-        table.appendChild(tr);
-      });
+    usuarios = users.filter(u => u.role === "STUDENT" || u.role === "PROFESSOR");
+    mostrarUsuarios(usuarios);
+  })
+  .catch(err => {
+    console.error("Error cargando usuarios:", err);
+    alert("Ocurrió un error al cargar los usuarios.");
   });
 
+  // Mostrar tabla
+  function mostrarUsuarios(lista) {
+    const table = document.getElementById("usuariosTable");
+    table.innerHTML = "";
+    lista.forEach(user => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${user.username}</td>
+        <td>${user.name} ${user.lastname}</td>
+        <td>${user.mail}</td>
+        <td>${user.role}</td>
+        <td class="actions-btn">
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.username}')">
+            Eliminar
+          </button>
+        </td>
+      `;
+      table.appendChild(tr);
+    });
+  }
+
+  // Filtro dinámico
+  function filtrarUsuarios() {
+    const valorUsername = document.getElementById("filtroUsername").value.toLowerCase();
+    const valorNombre = document.getElementById("filtroNombre").value.toLowerCase();
+    const valorEmail = document.getElementById("filtroEmail").value.toLowerCase();
+    const valorRol = document.getElementById("filtroRol").value.toLowerCase();
+
+    const filtrados = usuarios.filter(u => {
+      const fullName = `${u.name} ${u.lastname}`.toLowerCase();
+      return u.username.toLowerCase().includes(valorUsername)
+          && fullName.includes(valorNombre)
+          && u.mail.toLowerCase().includes(valorEmail)
+          && u.role.toLowerCase().includes(valorRol);
+    });
+
+    mostrarUsuarios(filtrados);
+  }
+
+  // Eventos
+  document.getElementById("filtroUsername").addEventListener("input", filtrarUsuarios);
+  document.getElementById("filtroNombre").addEventListener("input", filtrarUsuarios);
+  document.getElementById("filtroEmail").addEventListener("input", filtrarUsuarios);
+  document.getElementById("filtroRol").addEventListener("input", filtrarUsuarios);
+
+  // Eliminar usuario
   function deleteUser(username) {
-    if (!confirm(`¿Estás seguro que querés eliminar a ${username}? Esta acción es irreversible.`)) return;
+    if (!confirm(`¿Estás seguro que querés eliminar al usuario ${username}? Esta acción es irreversible.`)) return;
 
     fetch("/api/users/deleteUser", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + localStorage.getItem("jwt")
+        "Authorization": "Bearer " + token
       },
       body: JSON.stringify({ username })
     })
-    .then(res => res.text())
+    .then(res => {
+      if (!res.ok) throw new Error("Error eliminando usuario");
+      return res.text();
+    })
     .then(msg => {
       alert(msg);
       location.reload();
@@ -76,6 +189,6 @@
     .catch(() => alert("Error eliminando el usuario."));
   }
 </script>
+
 </body>
 </html>
-

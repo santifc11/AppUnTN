@@ -146,25 +146,25 @@
     });
   }
 
-  // FILTRO DINÁMICO POR TODOS LOS CAMPOS
-  function filtrarTodos() {
-    const valorUsername = document.getElementById("filtroUsername").value.toLowerCase();
-    const valorNombre = document.getElementById("filtroNombre").value.toLowerCase();
-    const valorEmail = document.getElementById("filtroEmail").value.toLowerCase();
+    // FILTRO DINÁMICO POR TODOS LOS CAMPOS
+    function filtrarTodos() {
+      const valorUsername = document.getElementById("filtroUsername").value.toLowerCase();
+      const valorNombre = document.getElementById("filtroNombre").value.toLowerCase();
+      const valorEmail = document.getElementById("filtroEmail").value.toLowerCase();
 
-    const filtrados = admins.filter(u => {
-      const fullName = `${u.name} ${u.lastname}`.toLowerCase();
-      return u.username.toLowerCase().includes(valorUsername)
-          && fullName.includes(valorNombre)
-          && u.mail.toLowerCase().includes(valorEmail);
-    });
+      const filtrados = admins.filter(u => {
+        const fullName = `${u.name} ${u.lastname}`.toLowerCase();
+        return u.username.toLowerCase().includes(valorUsername)
+            && fullName.includes(valorNombre)
+            && u.mail.toLowerCase().includes(valorEmail);
+      });
 
-    mostrarAdmins(filtrados);
-  }
+      mostrarAdmins(filtrados);
+    }
 
-  document.getElementById("filtroUsername").addEventListener("input", filtrarTodos);
-  document.getElementById("filtroNombre").addEventListener("input", filtrarTodos);
-  document.getElementById("filtroEmail").addEventListener("input", filtrarTodos);
+    document.getElementById("filtroUsername").addEventListener("input", filtrarTodos);
+    document.getElementById("filtroNombre").addEventListener("input", filtrarTodos);
+    document.getElementById("filtroEmail").addEventListener("input", filtrarTodos);
 
   // ELIMINAR ADMIN
   function deleteUser(username) {
