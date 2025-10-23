@@ -71,7 +71,9 @@ public class SecurityConfig {
                                         "/admin_usuarios.html",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**",
-                                        "/swagger-ui.html"
+                                        "/swagger-ui.html",
+                                        "/admin_materias.html",
+                                        "api/subjects/all"
                                 ).permitAll()
 
                                 // Endpoints protegidos (JWT necesario)
