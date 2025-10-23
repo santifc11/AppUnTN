@@ -49,7 +49,8 @@
   }
 
   const payload = getPayloadFromToken(token);
-  const username = payload?.sub;
+  // username actual en minúsculas para comparaciones seguras
+  const username = (payload?.sub || "").toLowerCase();
   const role = payload?.role;
 </script>
 
@@ -114,6 +115,7 @@
     return res.json();
   })
   .then(users => {
+    // Normalizamos roles como venían en tu versión original
     admins = users.filter(u => u.role === "ADMIN" || u.role === "ROLE_ADMIN");
     mostrarAdmins(admins);
   })
@@ -132,43 +134,74 @@
     table.innerHTML = "";
     lista.forEach(user => {
       const tr = document.createElement("tr");
+
+      // Comparaciones en minúsculas para evitar problemas de mayúsculas/minúsculas
+      const userLower = (user.username || "").toLowerCase();
+
+      // REGLA solicitada:
+      // - cualquier admin puede eliminar a otros admins
+      // - NO puede eliminarse a sí mismo
+      // - NO puede eliminar al admin raíz "admin0" (sin importar mayúsculas)
+      const puedeEliminar = (userLower !== username) && (userLower !== "admin0");
+
       tr.innerHTML = `
         <td>${user.username}</td>
-        <td>${user.name} ${user.lastname}</td>
-        <td>${user.mail}</td>
+        <td>${user.name || ''} ${user.lastname || ''}</td>
+        <td>${user.mail || ''}</td>
         <td class="actions-btn">
-          <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.username}')">
-            Eliminar
-          </button>
+          ${
+            puedeEliminar
+              ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${escapeForOnclick(user.username)}')">Eliminar</button>`
+              : `<span class="text-muted">No disponible</span>`
+          }
         </td>
       `;
       table.appendChild(tr);
     });
   }
 
-    // FILTRO DINÁMICO POR TODOS LOS CAMPOS
-    function filtrarTodos() {
-      const valorUsername = document.getElementById("filtroUsername").value.toLowerCase();
-      const valorNombre = document.getElementById("filtroNombre").value.toLowerCase();
-      const valorEmail = document.getElementById("filtroEmail").value.toLowerCase();
+  // pequeña función para escapar comillas dentro de los usernames al inyectarlos en onclick
+  function escapeForOnclick(s) {
+    if (s == null) return '';
+    return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
+  }
 
-      const filtrados = admins.filter(u => {
-        const fullName = `${u.name} ${u.lastname}`.toLowerCase();
-        return u.username.toLowerCase().includes(valorUsername)
-            && fullName.includes(valorNombre)
-            && u.mail.toLowerCase().includes(valorEmail);
-      });
+  // FILTRO DINÁMICO POR TODOS LOS CAMPOS
+  function filtrarTodos() {
+    const valorUsername = document.getElementById("filtroUsername").value.toLowerCase();
+    const valorNombre = document.getElementById("filtroNombre").value.toLowerCase();
+    const valorEmail = document.getElementById("filtroEmail").value.toLowerCase();
 
-      mostrarAdmins(filtrados);
-    }
+    const filtrados = admins.filter(u => {
+      const fullName = `${u.name || ''} ${u.lastname || ''}`.toLowerCase();
+      return (u.username || '').toLowerCase().includes(valorUsername)
+          && fullName.includes(valorNombre)
+          && (u.mail || '').toLowerCase().includes(valorEmail);
+    });
 
-    document.getElementById("filtroUsername").addEventListener("input", filtrarTodos);
-    document.getElementById("filtroNombre").addEventListener("input", filtrarTodos);
-    document.getElementById("filtroEmail").addEventListener("input", filtrarTodos);
+    mostrarAdmins(filtrados);
+  }
+
+  document.getElementById("filtroUsername").addEventListener("input", filtrarTodos);
+  document.getElementById("filtroNombre").addEventListener("input", filtrarTodos);
+  document.getElementById("filtroEmail").addEventListener("input", filtrarTodos);
 
   // ELIMINAR ADMIN
-  function deleteUser(username) {
-    if (!confirm(`¿Estás seguro que querés eliminar al administrador ${username}?`)) return;
+  function deleteUser(usernameToDeleteRaw) {
+    // defensas: trim y minúsculas
+    const usernameToDelete = (usernameToDeleteRaw || "").toLowerCase();
+
+    // Validaciones extras por seguridad
+    if (usernameToDelete === "admin0") {
+      alert("No se puede eliminar al administrador raíz (admin0).");
+      return;
+    }
+    if (usernameToDelete === username) {
+      alert("No podés eliminar tu propio usuario.");
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro que querés eliminar al administrador ${usernameToDeleteRaw}?`)) return;
 
     fetch("/api/users/deleteUser", {
       method: "DELETE",
@@ -176,21 +209,30 @@
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({ username })
+      body: JSON.stringify({ username: usernameToDeleteRaw })
     })
-    .then(res => {
-      if (!res.ok) throw new Error("Error eliminando administrador");
+    .then(async res => {
+      if (!res.ok) {
+        const text = await res.text().catch(()=>null);
+        throw new Error(text || "Error eliminando administrador");
+      }
       return res.text();
     })
     .then(msg => {
-      alert(msg);
-      location.reload();
+      alert(msg || "Administrador eliminado correctamente.");
+      // Actualizo la lista en memoria y la tabla sin recargar la página
+      admins = admins.filter(a => (a.username || "").toLowerCase() !== usernameToDelete);
+      mostrarAdmins(admins);
     })
-    .catch(() => alert("Error eliminando el administrador."));
+    .catch(err => {
+      console.error("Error en deleteUser:", err);
+      alert(err.message || "Error eliminando el administrador.");
+    });
   }
 </script>
 
 </body>
 </html>
+
 
 
