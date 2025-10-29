@@ -14,6 +14,7 @@
       background-color: #f8f9fa;
       color: #0a2540;
     }
+
     header {
       display: flex;
       justify-content: space-between;
@@ -23,15 +24,18 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       margin-bottom: 30px;
     }
+
     .logo img {
       height: 60px;
     }
+
     .nav-links a {
       margin: 0 15px;
       text-decoration: none;
       color: #0a2540;
       font-weight: 500;
     }
+
     .auth-buttons a {
       margin-left: 10px;
       padding: 10px 18px;
@@ -41,13 +45,42 @@
       text-decoration: none;
       border: 2px solid #1f6feb;
       color: #1f6feb;
+      transition: 0.3s;
     }
+
     .auth-buttons a:hover {
       background-color: #1f6feb;
       color: white;
     }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .filter-row .form-control,
+    .filter-row .form-select {
+      min-width: 200px;
+    }
+
+    .list-group-item {
+      background-color: white;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+      text-align: left !important;
+    }
+
+    .list-group-item:hover {
+      background-color: #e8f0fe;
+      transform: scale(1.01);
+    }
   </style>
 </head>
+
 <body>
 <script>
   const token = localStorage.getItem("jwt");
@@ -70,7 +103,6 @@
   const username = getUsernameFromToken(token);
 </script>
 
-
 <header>
   <div class="logo">
     <img src="img/utn_mdp.png" alt="Logo UTN">
@@ -78,7 +110,7 @@
   <nav class="nav-links">
     <a href="index_usuario_perfil.html">Inicio</a>
     <a href="resume_upload.html">Subir resumen</a>
-    <a href="documents.html">Explorar</a>
+    <a href="documents.html" class="fw-bold text-primary">Explorar</a>
   </nav>
   <div class="auth-buttons">
     <a href="profile.html">Mi perfil</a>
@@ -86,76 +118,121 @@
 </header>
 
 <div class="container">
-  <h2 class="mb-4">Explorar resúmenes</h2>
+  <h2 class="mb-4 fw-bold">Explorar resúmenes</h2>
 
-  <div class="mb-4">
-    <label for="filterSelect" class="form-label">Filtrar por materia:</label>
-    <select id="filterSelect" class="form-select">
-      <option value="">Todas las materias</option>
-      <option value="PROGRAMACION_I">Programación I</option>
-      <option value="ARQUITECTURA_Y_SISTEMAS_OPERATIVOS">Arquitectura de Sistemas Operativos</option>
-      <option value="MATEMATICA">Matemática</option>
-      <option value="ORGANIZACION_EMPRESARIAL">Organización Empresarial</option>
-      <option value="PROGRAMACION_II">Programación II</option>
-      <option value="PROBABILIDAD_Y_ESTADISTICA">Probabilidad y Estadística</option>
-      <option value="BASE_DE_DATOS_II">Base de Datos I</option>
-      <option value="INGLES_I">Inglés I</option>
-      <option value="PROGRAMACION_III">Programación III</option>
-      <option value="BASE_DE_DATOS_I">Base de Datos II</option>
-      <option value="METODOLOGIA_DE_SISTEMAS_I">Metodología de Sistemas I</option>
-      <option value="INGLES_II">Inglés II</option>
-      <option value="PROGRAMACION_IV">Programación IV</option>
-      <option value="METODOLOGIA_DE_SISTEMAS_II">Metodología de Sistemas II</option>
-      <option value="INTRODUCCION_AL_ANALISIS_DE_DATOS">Introducción al Análisis de Datos</option>
-      <option value="LEGISLACION">Legislación</option>
-      <option value="GESTION_DE_DESARROLLO_DE_SOFTWARE">Gestión de Desarrollo de Software</option>
-    </select>
+  <!-- FILTROS -->
+  <div class="filter-row">
+    <div>
+      <label for="filterSelect" class="form-label mb-1">Materia:</label>
+      <select id="filterSelect" class="form-select">
+        <option value="">Seleccionar materia...</option>
+        <option value="PROGRAMACION_I">Programación I</option>
+        <option value="ARQUITECTURA_Y_SISTEMAS_OPERATIVOS">Arquitectura y SO</option>
+        <option value="MATEMATICA">Matemática</option>
+        <option value="ORGANIZACION_EMPRESARIAL">Organización Empresarial</option>
+        <option value="PROGRAMACION_II">Programación II</option>
+        <option value="PROBABILIDAD_Y_ESTADISTICA">Probabilidad y Estadística</option>
+        <option value="BASE_DE_DATOS_II">Base de Datos I</option>
+        <option value="INGLES_I">Inglés I</option>
+        <option value="PROGRAMACION_III">Programación III</option>
+        <option value="BASE_DE_DATOS_I">Base de Datos II</option>
+        <option value="METODOLOGIA_DE_SISTEMAS_I">Metodología de Sistemas I</option>
+        <option value="INGLES_II">Inglés II</option>
+        <option value="PROGRAMACION_IV">Programación IV</option>
+        <option value="METODOLOGIA_DE_SISTEMAS_II">Metodología de Sistemas II</option>
+        <option value="INTRODUCCION_AL_ANALISIS_DE_DATOS">Introducción al Análisis de Datos</option>
+        <option value="LEGISLACION">Legislación</option>
+        <option value="GESTION_DE_DESARROLLO_DE_SOFTWARE">Gestión de Desarrollo de Software</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="filterName" class="form-label mb-1">Nombre del resumen:</label>
+      <input type="text" id="filterName" class="form-control" placeholder="Ej: Base de datos...">
+    </div>
+
+    <div>
+      <label for="filterAuthor" class="form-label mb-1">Autor:</label>
+      <input type="text" id="filterAuthor" class="form-control" placeholder="Ej: Juan Pérez">
+    </div>
   </div>
 
-  <div id="documentList" class="list-group"></div>
+  <div id="documentList" class="list-group text-center text-muted">
+    <p>Usá los filtros para buscar resúmenes 🔍</p>
+  </div>
 </div>
 
 <script>
   const documentList = document.getElementById("documentList");
   const filterSelect = document.getElementById("filterSelect");
+  const filterName = document.getElementById("filterName");
+  const filterAuthor = document.getElementById("filterAuthor");
 
-  function cargarDocumentos(materia = "") {
-    const url = materia ? "/api/documents/filterBySubject" : "/api/documents/getAll";
-    const options = {
-      method: materia ? "POST" : "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      },
-      body: materia ? JSON.stringify({ subject: materia }) : null
-    };
+  let allDocs = [];
 
-    fetch(url, options)
-      .then(res => res.json())
-      .then(data => {
-        documentList.innerHTML = "";
-        if (data.length === 0) {
-          documentList.innerHTML = "<p class='text-muted'>No hay resúmenes disponibles.</p>";
-          return;
-        }
-        data.forEach(doc => {
-          const item = document.createElement("a");
-          item.className = "list-group-item list-group-item-action";
-          item.href = "document_preview.html";
-          item.onclick = () => localStorage.setItem("docIdSeleccionado", doc.id);
-          item.innerHTML = `<strong>${doc.title}</strong><br>${doc.description}<br><small>${doc.subject}</small>`;
-          documentList.appendChild(item);
+  async function cargarDocumentos() {
+    const materia = filterSelect.value;
+    const nombre = filterName.value.trim().toLowerCase();
+    const autor = filterAuthor.value.trim().toLowerCase();
+
+    // No buscar si no hay ningún filtro aplicado
+    if (!materia && !nombre && !autor) {
+      documentList.innerHTML = "<p class='text-muted'>Usá los filtros para buscar resúmenes 🔍</p>";
+      return;
+    }
+
+    // Cargar los documentos si aún no se cargaron
+    if (allDocs.length === 0) {
+      try {
+        const res = await fetch("/api/documents/getAll", {
+          method: "GET",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+          }
         });
-      })
-      .catch(err => {
-        documentList.innerHTML = `<p class="text-danger">Error cargando documentos</p>`;
+        allDocs = await res.json();
+      } catch (err) {
         console.error(err);
-      });
+        documentList.innerHTML = `<p class="text-danger">Error cargando documentos</p>`;
+        return;
+      }
+    }
+
+    const filtrados = allDocs.filter(doc => {
+      const coincideMateria = !materia || doc.subject === materia;
+      const coincideNombre = !nombre || doc.title.toLowerCase().includes(nombre);
+      const coincideAutor = !autor || (doc.authorUsername && doc.authorUsername.toLowerCase().includes(autor));
+      return coincideMateria && coincideNombre && coincideAutor;
+    });
+
+    documentList.innerHTML = "";
+
+    if (filtrados.length === 0) {
+      documentList.innerHTML = "<p class='text-muted'>No hay resúmenes que coincidan con los filtros.</p>";
+      return;
+    }
+
+    filtrados.forEach(doc => {
+      const item = document.createElement("a");
+      item.className = "list-group-item list-group-item-action";
+      item.href = "document_preview.html";
+      item.onclick = () => localStorage.setItem("docIdSeleccionado", doc.id);
+      item.innerHTML = `<strong>${doc.title}</strong><br>
+        <small><em>${doc.authorUsername || "Autor desconocido"}</em></small><br>
+        ${doc.description}<br>
+        <small class="text-muted">${doc.subject}</small>
+      `;
+      documentList.appendChild(item);
+    });
   }
 
-  filterSelect.addEventListener("change", () => cargarDocumentos(filterSelect.value));
-  cargarDocumentos();
+  // Escuchar cambios
+  filterSelect.addEventListener("change", cargarDocumentos);
+  filterName.addEventListener("input", cargarDocumentos);
+  filterAuthor.addEventListener("input", cargarDocumentos);
 </script>
 
 </body>
 </html>
+
