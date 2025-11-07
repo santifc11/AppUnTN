@@ -67,6 +67,7 @@ public class SecurityConfig {
                                         "/favicon.ico",
                                         "/api/auth/**",
                                         "/api/users/register",
+                                        "/api/users/exists/**",
                                         "/index_usuario_perfil.html",
                                         "/resume_upload.html",
                                         "/documents.html",

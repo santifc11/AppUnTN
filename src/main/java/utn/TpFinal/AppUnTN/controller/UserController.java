@@ -12,6 +12,7 @@ import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
+import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
@@ -20,16 +21,20 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:4200") // 👈 importante si tu front corre en Angular local
 public class UserController {
 
 
     private final UserService userService;
     private final DocumentService documentService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService, DocumentService documentService) {
+    public UserController(UserService userService, DocumentService documentService, UserRepository userRepository) {
         this.userService = userService;
         this.documentService = documentService;
+        this.userRepository = userRepository;
+
     }
 
     @PostMapping("/register")
@@ -146,6 +151,19 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
+    // ✅ Verificar si el email ya existe
+    @GetMapping("/exists/email")
+    public ResponseEntity<Boolean> existsByEmail(@RequestParam String email) {
+        boolean exists = userRepository.existsByMail(email);
+        return ResponseEntity.ok(exists);
+    }
+
+    // ✅ Verificar si el username ya existe
+    @GetMapping("/exists/username")
+    public ResponseEntity<Boolean> existsByUsername(@RequestParam String username) {
+        boolean exists = userRepository.existsByUsername(username);
+        return ResponseEntity.ok(exists);
+    }
 
 }
 
