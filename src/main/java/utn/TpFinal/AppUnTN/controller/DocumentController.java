@@ -191,4 +191,21 @@ public class DocumentController {
         return ResponseEntity.ok(documentService.mapToDTO(saved));
     }
 
+    @GetMapping("/myDocuments")
+    public ResponseEntity<List<DocumentResponseDTO>> getMyDocuments(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<Document> docs = documentService.findByAuthor(user);
+
+        List<DocumentResponseDTO> response = docs.stream()
+                .map(documentService::mapToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
 }
