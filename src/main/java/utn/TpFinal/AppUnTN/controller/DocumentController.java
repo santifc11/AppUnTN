@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Role;
-import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;

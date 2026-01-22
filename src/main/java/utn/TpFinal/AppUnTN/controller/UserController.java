@@ -10,7 +10,6 @@ import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.Exceptions.UnauthorizedActionException;
 import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
 import utn.TpFinal.AppUnTN.model.Document;
-import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.DocumentService;

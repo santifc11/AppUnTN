@@ -9,7 +9,6 @@ import utn.TpFinal.AppUnTN.DTO.UserAdminDTO;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.Exceptions.UserAlreadyExistsException;
 import utn.TpFinal.AppUnTN.model.Role;
-import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
