@@ -9,8 +9,10 @@ import utn.TpFinal.AppUnTN.DTO.UserAdminDTO;
 import utn.TpFinal.AppUnTN.DTO.UserUpdateDTO;
 import utn.TpFinal.AppUnTN.Exceptions.UserAlreadyExistsException;
 import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.DocumentRepository;
+import utn.TpFinal.AppUnTN.repository.SubjectRepository; // 👈 1. IMPORTANTE
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 
 import java.util.List;
@@ -23,31 +25,31 @@ public class UserService {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
     private final DocumentRepository documentRepository;
+    private final SubjectRepository subjectRepository; // 👈 2. Inyectamos el repo de materias
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, DocumentRepository documentRepository) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       DocumentRepository documentRepository,
+                       SubjectRepository subjectRepository) { // 👈 3. Lo agregamos al constructor
         this.userRepo = userRepository;
-        this.passwordEncoder=passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
         this.documentRepository = documentRepository;
+        this.subjectRepository = subjectRepository;
     }
 
-    //Le asigna un Id al user y lo guarda en la bdd.
     public User register(User user){
         if (userRepo.findByUsername(user.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException("El nombre de usuario ya está registrado.");
         }
-
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
-
-
 
     public Optional<User> login(String username, String password) {
         return userRepo.findByUsername(username)
                 .filter(user -> passwordEncoder.matches(password, user.getPassword()));
     }
-
 
     public List<User> readAll() {
         return userRepo.findAll();
@@ -64,7 +66,6 @@ public class UserService {
                 ))
                 .collect(Collectors.toList());
     }
-
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #usernameToDelete == authentication.name")
@@ -96,8 +97,6 @@ public class UserService {
 
         return "No autorizado para eliminar al usuario '" + usernameToDelete + "'.";
     }
-
-
 
     public String updateUserByUsername(String username, UserUpdateDTO updatedUserData) {
         return userRepo.findByUsername(username)
@@ -139,7 +138,9 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado o no es profesor"));
     }
 
-    public String updateSubjects(String username, List<Subject> subjects) {
+    //reemplazamos los metodos hechos apra un enum de materias y ahora las tratamos como una entidad.
+
+    public String updateSubjects(String username, List<Subject> subjectsInput) {
         return userRepo.findByUsername(username)
                 .map(user -> {
                     if (user.getRole() != Role.PROFESSOR) {
@@ -148,27 +149,33 @@ public class UserService {
 
                     List<Subject> currentSubjects = user.getSubjects();
 
-                    for (Subject subject : subjects) {
-                        if (!currentSubjects.contains(subject)) {
-                            currentSubjects.add(subject);
+                    for (Subject incomingSubject : subjectsInput) {
+
+                        Optional<Subject> realSubjectOpt = subjectRepository.findByName(incomingSubject.getName());
+
+                        if (realSubjectOpt.isPresent()) {
+                            Subject realSubject = realSubjectOpt.get();
+                            if (!currentSubjects.contains(realSubject)) {
+                                currentSubjects.add(realSubject);
+                            }
                         }
                     }
 
                     user.setSubjects(currentSubjects);
                     userRepo.save(user);
-                    return "Materias agregadas correctamente";
+                    return "Materias actualizadas correctamente";
                 })
                 .orElse("Usuario no encontrado");
     }
 
     public String deleteSubject(String username, String subjectStr) {
-        Subject subject;
+        Optional<Subject> subjectOpt = subjectRepository.findByName(subjectStr);
 
-        try {
-            subject = Subject.valueOf(subjectStr.toUpperCase()); // Convierte a mayúsculas para mayor tolerancia
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return "Materia inválida: " + subjectStr;
+        if (subjectOpt.isEmpty()) {
+            return "Materia inválida o no encontrada: " + subjectStr;
         }
+
+        Subject subjectToDelete = subjectOpt.get();
 
         return userRepo.findByUsername(username)
                 .map(user -> {
@@ -178,16 +185,15 @@ public class UserService {
 
                     List<Subject> subjects = user.getSubjects();
 
-                    if (subjects.contains(subject)) {
-                        subjects.remove(subject);
+                    if (subjects.contains(subjectToDelete)) {
+                        subjects.remove(subjectToDelete);
                         user.setSubjects(subjects);
                         userRepo.save(user);
                         return "Materia eliminada correctamente";
                     } else {
-                        return "El profesor no tiene asignada la materia: " + subject;
+                        return "El profesor no tiene asignada la materia: " + subjectToDelete.getName();
                     }
                 })
                 .orElse("Usuario no encontrado");
     }
 }
-

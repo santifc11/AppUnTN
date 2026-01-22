@@ -57,9 +57,12 @@ public class User implements UserDetails {
         return UserDetails.super.isEnabled();
     }
 
-    @ElementCollection(targetClass = Subject.class)
-    @CollectionTable(name = "user_subjects", joinColumns = @JoinColumn(name = "id"))
-    @Column(name = "subject")
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_subjects",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "subject_id")
+    )
     private List<Subject> subjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)

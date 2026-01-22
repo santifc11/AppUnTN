@@ -18,6 +18,8 @@ public class Document {
 
     private String description;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;
 
     private String fileType;
