@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Role;
+import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.CommentaryRepository;
+import utn.TpFinal.AppUnTN.repository.UserRepository;
 
 import java.util.List;
 
@@ -13,10 +15,12 @@ import java.util.List;
 public class CommentaryService {
 
     private final CommentaryRepository commentaryRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CommentaryService(CommentaryRepository commentaryRepository) {
+    public CommentaryService(CommentaryRepository commentaryRepository, UserRepository userRepository) {
         this.commentaryRepository = commentaryRepository;
+        this.userRepository = userRepository;
     }
 
     public Commentary guardar(Commentary c) {
@@ -35,7 +39,13 @@ public class CommentaryService {
         Commentary comentario = commentaryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comentario no encontrado"));
 
-        if (!comentario.getAuthor().getUsername().equals(username)) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        boolean isAuthor = comentario.getAuthor().getUsername().equals(username);
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+
+        if (!(isAuthor || isAdmin)) {
             throw new RuntimeException("No estás autorizado para eliminar este comentario");
         }
 
