@@ -1,5 +1,6 @@
 package utn.TpFinal.AppUnTN.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; //para pruebas postman
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,6 +8,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) //para pruebas postman
 public class Subject {
 
     @Id
