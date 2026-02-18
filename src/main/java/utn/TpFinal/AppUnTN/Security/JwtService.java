@@ -12,7 +12,8 @@ import java.util.List;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "q7oXcF4NVkXLX6kK0rZKvSh4U3nU4nN92nFcW6+rkXs=";
+    @org.springframework.beans.factory.annotation.Value("${JWT_SECRET:q7oXcF4NVkXLX6kK0rZKvSh4U3nU4nN92nFcW6+rkXs=}")
+    private String secretKey;
 
     public String generateToken(UserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities()
@@ -64,7 +65,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secretKey);
         return io.jsonwebtoken.security.Keys.hmacShaKeyFor(keyBytes);
     }
 }
