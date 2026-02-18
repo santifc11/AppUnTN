@@ -62,9 +62,15 @@ public class DocumentService {
                 document.getFileType(),
                 document.getUploadDate(),
                 document.getAuthor().getUsername(),
+                document.getDownloadCount(),
                 punctuationDTOs,
                 commentaryDTOs
         );
+    }
+
+    public Document incrementarDescargas(Document document) {
+        document.setDownloadCount(document.getDownloadCount() + 1);
+        return documentRepository.save(document);
     }
 
     public List<Document> findBySubject(Subject subject){

@@ -16,6 +16,7 @@ import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -97,12 +98,31 @@ public class DocumentController {
 
     // Obtener todos los documentos en DTO
     @GetMapping("/getAll")
-    public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments() {
+    public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments(
+            @RequestParam(defaultValue = "recientes") String orden) {
         List<Document> documents = documentService.listarTodos();
 
         List<DocumentResponseDTO> response = documents.stream()
                 .map(documentService::mapToDTO)
                 .collect(Collectors.toList());
+
+        switch (orden) {
+            case "puntuados":
+                response.sort((a, b) -> {
+                    double promedioA = a.getPunctuations().isEmpty() ? 0 :
+                            a.getPunctuations().stream().mapToInt(DocumentResponseDTO.PunctuationDTO::getValue).average().orElse(0);
+                    double promedioB = b.getPunctuations().isEmpty() ? 0 :
+                            b.getPunctuations().stream().mapToInt(DocumentResponseDTO.PunctuationDTO::getValue).average().orElse(0);
+                    return Double.compare(promedioB, promedioA);
+                });
+                break;
+            case "descargados":
+                response.sort(Comparator.comparingInt(DocumentResponseDTO::getDownloadCount).reversed());
+                break;
+            default: // "recientes"
+                response.sort(Comparator.comparing(DocumentResponseDTO::getUploadDate).reversed());
+                break;
+        }
 
         return ResponseEntity.ok(response);
     }
@@ -142,6 +162,7 @@ public class DocumentController {
     public ResponseEntity<byte[]> downloadFileById(@RequestBody IdRequest idRequest) {
         return documentService.buscarPorId(idRequest.getId())
                 .map(document -> {
+                    documentService.incrementarDescargas(document);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.parseMediaType(document.getFileType()));
                     headers.setContentDisposition(ContentDisposition.attachment()

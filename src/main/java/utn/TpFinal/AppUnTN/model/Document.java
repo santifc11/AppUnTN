@@ -27,6 +27,9 @@ public class Document {
 
     private LocalDate uploadDate;
 
+    @Column(nullable = false)
+    private int downloadCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
