@@ -42,9 +42,14 @@ public class CommentaryService {
         commentaryRepository.deleteById(id);
     }
 
-    public Commentary actualizar(Long id, String nuevoContenido) {
+    public Commentary actualizar(Long id, String nuevoContenido, String username) {
         Commentary comentario = commentaryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comentario no encontrado"));
+
+        if (!comentario.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("No estás autorizado para editar este comentario");
+        }
+
         comentario.setContent(nuevoContenido);
         return commentaryRepository.save(comentario);
     }

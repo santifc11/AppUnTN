@@ -66,9 +66,15 @@ public class CommentaryController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<CommentaryDTO> updateCommentary(@RequestBody UpdateCommentaryRequest request) {
-        Commentary updated = commentaryService.actualizar(request.getId(), request.getNuevoContenido());
-        return ResponseEntity.ok(CommentaryDTO.fromEntity(updated));
+    public ResponseEntity<?> updateCommentary(@RequestBody UpdateCommentaryRequest request,
+                                              Authentication authentication) {
+        String username = authentication.getName();
+        try {
+            Commentary updated = commentaryService.actualizar(request.getId(), request.getNuevoContenido(), username);
+            return ResponseEntity.ok(CommentaryDTO.fromEntity(updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/delete")
