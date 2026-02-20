@@ -44,6 +44,22 @@ public class DocumentController {
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
+            // Validaciones de campos obligatorios
+            if (title == null || title.isBlank()) {
+                return ResponseEntity.badRequest().body("El título es obligatorio.");
+            }
+            if (description == null || description.isBlank()) {
+                return ResponseEntity.badRequest().body("La descripción es obligatoria.");
+            }
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("El archivo es obligatorio.");
+            }
+            // Validar tamaño máximo 10MB
+            long maxSize = 10 * 1024 * 1024;
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body("El archivo no puede superar los 10MB.");
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

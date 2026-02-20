@@ -11,6 +11,7 @@ import utn.TpFinal.AppUnTN.DTO.IdRequest;
 import utn.TpFinal.AppUnTN.DTO.UpdateCommentaryRequest;
 import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.CommentaryService;
 import utn.TpFinal.AppUnTN.service.DocumentService;
@@ -35,8 +36,12 @@ public class CommentaryController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<CommentaryDTO> addCommentary(@RequestBody CommentaryRequestDTO request,
+    public ResponseEntity<?> addCommentary(@RequestBody CommentaryRequestDTO request,
                                                        Authentication authentication) {
+        if (request.getContent() == null || request.getContent().isBlank()) {
+            return ResponseEntity.badRequest().body("El comentario no puede estar vacío.");
+        }
+
         String username = authentication.getName();
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -81,8 +86,11 @@ public class CommentaryController {
     public ResponseEntity<String> deleteCommentary(@RequestBody IdRequest idRequest,
                                                    Authentication authentication) {
         String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Role role = user.getRole();
         try {
-            commentaryService.eliminar(idRequest.getId(), username);
+            commentaryService.eliminar(idRequest.getId(), username, role);
             return ResponseEntity.ok("Comentario eliminado correctamente");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());

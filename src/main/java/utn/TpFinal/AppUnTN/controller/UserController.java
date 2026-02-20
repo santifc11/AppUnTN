@@ -42,7 +42,7 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             return ResponseEntity.ok(userService.register(user));
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
@@ -86,12 +86,15 @@ public class UserController {
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String result = userService.updateUserByUsername(username, updatedData);
-
-        if (result.contains("actualizado")) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(404).body(result);
+        try {
+            String result = userService.updateUserByUsername(username, updatedData);
+            if (result.contains("actualizado")) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
