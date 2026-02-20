@@ -59,6 +59,16 @@ public class DocumentController {
             if (file.getSize() > maxSize) {
                 return ResponseEntity.badRequest().body("El archivo no puede superar los 10MB.");
             }
+            // Validar materia
+            if (subject == null || subject.isBlank()) {
+                return ResponseEntity.badRequest().body("La materia es obligatoria.");
+            }
+            Subject subjectEnum;
+            try {
+                subjectEnum = Subject.valueOf(subject);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body("Materia inválida.");
+            }
 
             String username = authentication.getName();
             User user = userService.findByUsername(username)
@@ -67,7 +77,7 @@ public class DocumentController {
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
-            doc.setSubject(Subject.valueOf(subject));
+            doc.setSubject(subjectEnum);
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());
@@ -136,7 +146,8 @@ public class DocumentController {
                 response.sort(Comparator.comparingInt(DocumentResponseDTO::getDownloadCount).reversed());
                 break;
             default: // "recientes"
-                response.sort(Comparator.comparing(DocumentResponseDTO::getUploadDate).reversed());
+                response.sort(Comparator.comparing(DocumentResponseDTO::getUploadDate)
+                        .thenComparing(DocumentResponseDTO::getId).reversed());
                 break;
         }
 
