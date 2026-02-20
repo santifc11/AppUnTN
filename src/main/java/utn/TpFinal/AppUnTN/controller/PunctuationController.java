@@ -7,9 +7,9 @@ import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.*;
-import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Punctuation;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.PunctuationService;
@@ -61,17 +61,26 @@ public class PunctuationController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<PunctuationDTO> updatePunctuation(@RequestBody UpdatePunctuationRequest request) {
-        Punctuation updated = punctuationService.actualizar(request.getId(), request.getNuevoValor());
-        return ResponseEntity.ok(PunctuationDTO.fromEntity(updated));
+    public ResponseEntity<?> updatePunctuation(@RequestBody UpdatePunctuationRequest request,
+                                               Authentication authentication) {
+        String username = authentication.getName();
+        try {
+            Punctuation updated = punctuationService.actualizar(request.getId(), request.getNuevoValor(), username);
+            return ResponseEntity.ok(PunctuationDTO.fromEntity(updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/delete")
     public ResponseEntity<String> deletePunctuation(@RequestBody IdRequest idRequest,
                                                     Authentication authentication) {
         String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Role role = user.getRole();
         try {
-            punctuationService.eliminar(idRequest.getId(), username);
+            punctuationService.eliminar(idRequest.getId(), username, role);
             return ResponseEntity.ok("Puntuación eliminada correctamente");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());

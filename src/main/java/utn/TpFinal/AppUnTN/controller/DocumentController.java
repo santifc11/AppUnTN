@@ -16,6 +16,7 @@ import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class DocumentController {
         this.userService = userService;
     }
 
-    // Agregar documento (multipart/form-data)
+    // Agregar documento
     @PostMapping("/add")
     public ResponseEntity<?> addDocument(
             @RequestParam("file") MultipartFile file,
@@ -43,6 +44,32 @@ public class DocumentController {
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
+            // Validaciones de campos obligatorios
+            if (title == null || title.isBlank()) {
+                return ResponseEntity.badRequest().body("El título es obligatorio.");
+            }
+            if (description == null || description.isBlank()) {
+                return ResponseEntity.badRequest().body("La descripción es obligatoria.");
+            }
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("El archivo es obligatorio.");
+            }
+            // Validar tamaño máximo 10MB
+            long maxSize = 10 * 1024 * 1024;
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body("El archivo no puede superar los 10MB.");
+            }
+            // Validar materia
+            if (subject == null || subject.isBlank()) {
+                return ResponseEntity.badRequest().body("La materia es obligatoria.");
+            }
+            Subject subjectEnum;
+            try {
+                subjectEnum = Subject.valueOf(subject);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body("Materia inválida.");
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -50,14 +77,14 @@ public class DocumentController {
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
-            doc.setSubject(Subject.valueOf(subject));
+            doc.setSubject(subjectEnum);
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());
             doc.setAuthor(user);
 
             Document savedDoc = documentService.guardar(doc);
-            // Mapear a DTO para devolver solo datos necesarios
+
             DocumentResponseDTO dto = documentService.mapToDTO(savedDoc);
             return ResponseEntity.ok(dto);
 
@@ -97,12 +124,32 @@ public class DocumentController {
 
     // Obtener todos los documentos en DTO
     @GetMapping("/getAll")
-    public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments() {
+    public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments(
+            @RequestParam(defaultValue = "recientes") String orden) {
         List<Document> documents = documentService.listarTodos();
 
         List<DocumentResponseDTO> response = documents.stream()
                 .map(documentService::mapToDTO)
                 .collect(Collectors.toList());
+
+        switch (orden) {
+            case "puntuados":
+                response.sort((a, b) -> {
+                    double promedioA = a.getPunctuations().isEmpty() ? 0 :
+                            a.getPunctuations().stream().mapToInt(DocumentResponseDTO.PunctuationDTO::getValue).average().orElse(0);
+                    double promedioB = b.getPunctuations().isEmpty() ? 0 :
+                            b.getPunctuations().stream().mapToInt(DocumentResponseDTO.PunctuationDTO::getValue).average().orElse(0);
+                    return Double.compare(promedioB, promedioA);
+                });
+                break;
+            case "descargados":
+                response.sort(Comparator.comparingInt(DocumentResponseDTO::getDownloadCount).reversed());
+                break;
+            default: // "recientes"
+                response.sort(Comparator.comparing(DocumentResponseDTO::getUploadDate)
+                        .thenComparing(DocumentResponseDTO::getId).reversed());
+                break;
+        }
 
         return ResponseEntity.ok(response);
     }
@@ -142,6 +189,7 @@ public class DocumentController {
     public ResponseEntity<byte[]> downloadFileById(@RequestBody IdRequest idRequest) {
         return documentService.buscarPorId(idRequest.getId())
                 .map(document -> {
+                    documentService.incrementarDescargas(document);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.parseMediaType(document.getFileType()));
                     headers.setContentDisposition(ContentDisposition.attachment()
@@ -190,5 +238,22 @@ public class DocumentController {
 
         return ResponseEntity.ok(documentService.mapToDTO(saved));
     }
+
+    @GetMapping("/myDocuments")
+    public ResponseEntity<List<DocumentResponseDTO>> getMyDocuments(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<Document> docs = documentService.findByAuthor(user);
+
+        List<DocumentResponseDTO> response = docs.stream()
+                .map(documentService::mapToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
 }

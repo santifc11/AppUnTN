@@ -25,11 +25,11 @@ public class DocumentService {
     }
 
     public List<Document> listarTodos() {
-        return documentRepository.findAll();
+        return documentRepository.findAllWithDetails();
     }
 
     public Optional<Document> buscarPorId(Long id) {
-        return documentRepository.findById(id);
+        return documentRepository.findByIdWithDetails(id);
     }
 
     public void eliminar(Long id) {
@@ -62,18 +62,23 @@ public class DocumentService {
                 document.getFileType(),
                 document.getUploadDate(),
                 document.getAuthor().getUsername(),
+                document.getDownloadCount(),
                 punctuationDTOs,
                 commentaryDTOs
         );
     }
 
-    public List<Document> findBySubject(Subject subject){
-        return documentRepository.findBySubject(subject);
+    public Document incrementarDescargas(Document document) {
+        document.setDownloadCount(document.getDownloadCount() + 1);
+        return documentRepository.save(document);
+    }
 
+    public List<Document> findBySubject(Subject subject){
+        return documentRepository.findBySubjectWithDetails(subject);
     }
 
     public List<Document> findByAuthor(User author) {
-        return documentRepository.findByAuthor(author);
+        return documentRepository.findByAuthorWithDetails(author);
     }
 
 

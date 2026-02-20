@@ -9,7 +9,5 @@ public class   AppUnTnApplication {
 	public static void main(String[] args) {
 
 		SpringApplication.run(AppUnTnApplication.class, args);
-
 	}
-
 }

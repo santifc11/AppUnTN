@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.CommentaryDTO;
 import utn.TpFinal.AppUnTN.DTO.CommentaryRequestDTO;
@@ -13,6 +11,7 @@ import utn.TpFinal.AppUnTN.DTO.IdRequest;
 import utn.TpFinal.AppUnTN.DTO.UpdateCommentaryRequest;
 import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.service.CommentaryService;
 import utn.TpFinal.AppUnTN.service.DocumentService;
@@ -37,8 +36,12 @@ public class CommentaryController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<CommentaryDTO> addCommentary(@RequestBody CommentaryRequestDTO request,
+    public ResponseEntity<?> addCommentary(@RequestBody CommentaryRequestDTO request,
                                                        Authentication authentication) {
+        if (request.getContent() == null || request.getContent().isBlank()) {
+            return ResponseEntity.badRequest().body("El comentario no puede estar vacío.");
+        }
+
         String username = authentication.getName();
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -68,17 +71,26 @@ public class CommentaryController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<CommentaryDTO> updateCommentary(@RequestBody UpdateCommentaryRequest request) {
-        Commentary updated = commentaryService.actualizar(request.getId(), request.getNuevoContenido());
-        return ResponseEntity.ok(CommentaryDTO.fromEntity(updated));
+    public ResponseEntity<?> updateCommentary(@RequestBody UpdateCommentaryRequest request,
+                                              Authentication authentication) {
+        String username = authentication.getName();
+        try {
+            Commentary updated = commentaryService.actualizar(request.getId(), request.getNuevoContenido(), username);
+            return ResponseEntity.ok(CommentaryDTO.fromEntity(updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/delete")
     public ResponseEntity<String> deleteCommentary(@RequestBody IdRequest idRequest,
                                                    Authentication authentication) {
         String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Role role = user.getRole();
         try {
-            commentaryService.eliminar(idRequest.getId(), username);
+            commentaryService.eliminar(idRequest.getId(), username, role);
             return ResponseEntity.ok("Comentario eliminado correctamente");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());

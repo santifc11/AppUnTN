@@ -3,9 +3,9 @@ package utn.TpFinal.AppUnTN.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.Exceptions.UnauthorizedActionException;
@@ -13,6 +13,7 @@ import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
 import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
+import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
@@ -21,33 +22,39 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:4200") // 👈 importante si tu front corre en Angular local
 public class UserController {
 
 
     private final UserService userService;
     private final DocumentService documentService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService, DocumentService documentService) {
+    public UserController(UserService userService, DocumentService documentService, UserRepository userRepository) {
         this.userService = userService;
         this.documentService = documentService;
+        this.userRepository = userRepository;
+
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             return ResponseEntity.ok(userService.register(user));
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
         List<UserAdminDTO> users = userService.getAllUsersDTO();
         return ResponseEntity.ok(users);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser(@RequestBody UsernameRequest usernameRequest) {
         String usernameToDelete = usernameRequest.getUsername();
@@ -79,12 +86,15 @@ public class UserController {
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String result = userService.updateUserByUsername(username, updatedData);
-
-        if (result.contains("actualizado")) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(404).body(result);
+        try {
+            String result = userService.updateUserByUsername(username, updatedData);
+            if (result.contains("actualizado")) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
@@ -136,6 +146,7 @@ public class UserController {
         UserProfileDTO profile = new UserProfileDTO(
                 user.getName(),
                 user.getLastname(),
+                user.getMail(),
                 user.getCity(),
                 user.getAbout(),
                 user.getRole().name(),
@@ -146,6 +157,19 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
+    // ✅ Verificar si el email ya existe
+    @GetMapping("/exists/email")
+    public ResponseEntity<Boolean> existsByEmail(@RequestParam String email) {
+        boolean exists = userRepository.existsByMail(email);
+        return ResponseEntity.ok(exists);
+    }
+
+    // ✅ Verificar si el username ya existe
+    @GetMapping("/exists/username")
+    public ResponseEntity<Boolean> existsByUsername(@RequestParam String username) {
+        boolean exists = userRepository.existsByUsername(username);
+        return ResponseEntity.ok(exists);
+    }
 
 }
 

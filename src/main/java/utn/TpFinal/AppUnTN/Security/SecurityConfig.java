@@ -1,6 +1,5 @@
 package utn.TpFinal.AppUnTN.Security;
 
-import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +16,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import utn.TpFinal.AppUnTN.service.CustomUserDetailsService;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -63,13 +67,17 @@ public class SecurityConfig {
                                         "/favicon.ico",
                                         "/api/auth/**",
                                         "/api/users/register",
+                                        "/api/users/exists/**",
                                         "/index_usuario_perfil.html",
                                         "/resume_upload.html",
                                         "/documents.html",
                                         "/document_preview.html",
                                         "/profile.html",
                                         "/admin_admins.html",
-                                        "/admin_usuarios.html"
+                                        "/admin_usuarios.html",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui.html"
                                 ).permitAll()
 
                                 // Endpoints protegidos (JWT necesario)
@@ -89,7 +97,21 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider(userDetailsService))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // 👈 tu front Angular
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean

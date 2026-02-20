@@ -21,11 +21,11 @@ public class Administrator_0 implements CommandLineRunner {
         String email="admin0@gmail.com";
         if(userRepo.findByMail(email).isEmpty()){
             User Admin0= new User();
-            Admin0.setName("Felipe");
-            Admin0.setLastname("Climent");
+            Admin0.setName("Admin0");
+            Admin0.setLastname("0 (Cero)");
             Admin0.setUsername("Admin0");
             Admin0.setMail(email);
-            Admin0.setCity("San Manuel");
+            Admin0.setCity("Mar del Plata");
             Admin0.setPassword(passwordEncoder.encode("admin0"));
             Admin0.setRole(Role.ADMIN);
             Admin0.setAbout("Admin 0");

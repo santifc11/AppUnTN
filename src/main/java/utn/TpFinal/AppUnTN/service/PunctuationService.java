@@ -14,8 +14,8 @@ import java.util.List;
 public class PunctuationService {
 
     private final PunctuationRepository punctuationRepository;
-    private final UserRepository userRepository;       // <-- necesario para buscar al user por username
-    private final DocumentRepository documentRepository; // <-- necesario para buscar el documento
+    private final UserRepository userRepository;
+    private final DocumentRepository documentRepository;
 
     @Autowired
     public PunctuationService(PunctuationRepository punctuationRepository,
@@ -72,21 +72,29 @@ public class PunctuationService {
         return punctuationRepository.findByDocumentOrderByDestacadoDesc(document);
     }
 
-    public Punctuation actualizar(Long id, int nuevoValor) {
+    public Punctuation actualizar(Long id, int nuevoValor, String username) {
         if (nuevoValor < 1 || nuevoValor > 5) {
             throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5");
         }
         Punctuation puntuacion = punctuationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Puntuación no encontrada"));
+
+        if (!puntuacion.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("No estás autorizado para modificar esta puntuación");
+        }
+
         puntuacion.setValue(nuevoValor);
         return punctuationRepository.save(puntuacion);
     }
 
-    public void eliminar(Long id, String username) {
+    public void eliminar(Long id, String username, Role role) {
         Punctuation puntuacion = punctuationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Puntuación no encontrada"));
 
-        if (!puntuacion.getAuthor().getUsername().equals(username)) {
+        boolean esAutor = puntuacion.getAuthor().getUsername().equals(username);
+        boolean esAdmin = role == Role.ADMIN;
+
+        if (!esAutor && !esAdmin) {
             throw new RuntimeException("No estás autorizado para eliminar esta puntuación");
         }
 

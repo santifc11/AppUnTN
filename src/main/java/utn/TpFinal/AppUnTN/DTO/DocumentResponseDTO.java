@@ -15,6 +15,7 @@ public class DocumentResponseDTO {
     private String fileType;
     private LocalDate uploadDate;
     private String authorUsername;
+    private int downloadCount;
     private List<PunctuationDTO> punctuations;
     private List<CommentaryDTO> commentaries;
 
