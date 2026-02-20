@@ -3,8 +3,8 @@ package utn.TpFinal.AppUnTN.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -35,8 +35,8 @@ public class Document {
     private User author;
 
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Punctuation> punctuations = new ArrayList<>();
+    private Set<Punctuation> punctuations = new HashSet<>();
 
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Commentary> commentaries = new ArrayList<>();
+    private Set<Commentary> commentaries = new HashSet<>();
 }
