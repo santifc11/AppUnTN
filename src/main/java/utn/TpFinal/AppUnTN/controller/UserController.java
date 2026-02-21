@@ -45,14 +45,14 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
         List<UserAdminDTO> users = userService.getAllUsersDTO();
         return ResponseEntity.ok(users);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser(@RequestBody UsernameRequest usernameRequest) {
         String usernameToDelete = usernameRequest.getUsername();
