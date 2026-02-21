@@ -11,7 +11,7 @@ import utn.TpFinal.AppUnTN.DTO.*;
 import utn.TpFinal.AppUnTN.Exceptions.UnauthorizedActionException;
 import utn.TpFinal.AppUnTN.Exceptions.UserNotFoundException;
 import utn.TpFinal.AppUnTN.model.Document;
-import utn.TpFinal.AppUnTN.model.Subject;
+import utn.TpFinal.AppUnTN.model.Subject; // Ya no es un Enum, es una Entidad
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.UserRepository;
 import utn.TpFinal.AppUnTN.service.DocumentService;
@@ -22,9 +22,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:4200") // 👈 importante si tu front corre en Angular local
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
-
 
     private final UserService userService;
     private final DocumentService documentService;
@@ -35,7 +34,6 @@ public class UserController {
         this.userService = userService;
         this.documentService = documentService;
         this.userRepository = userRepository;
-
     }
 
     @PostMapping("/register")
@@ -82,9 +80,8 @@ public class UserController {
         }
     }
 
-
     @PutMapping("/updateUser")
-    public ResponseEntity<String> updateAuthenticatedUser(@RequestBody UserUpdateDTO updatedData) {
+    public ResponseEntity<String> updateUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             String result = userService.updateUserByUsername(username, updatedData);
@@ -113,6 +110,7 @@ public class UserController {
     @GetMapping("/subjects/get")
     public ResponseEntity<List<Subject>> getSubjectsOfProfessor(Authentication auth) {
         String username = auth.getName();
+        // Asegurate de que UserService devuelva List<Subject> (Entidades)
         List<Subject> subjects = userService.getSubjectsOfProfessor(username);
         return ResponseEntity.ok(subjects);
     }
@@ -120,6 +118,7 @@ public class UserController {
     @PutMapping("/subjects/update")
     public ResponseEntity<String> updateSubjects(Authentication auth, @RequestBody SubjectsDTO dto) {
         String username = auth.getName();
+        // Aquí probablemente tengas que adaptar el UserService para buscar las materias por nombre en la BD
         String resultado = userService.updateSubjects(username, dto.getSubjects());
         return ResponseEntity.ok(resultado);
     }
@@ -150,27 +149,22 @@ public class UserController {
                 user.getCity(),
                 user.getAbout(),
                 user.getRole().name(),
-                user.getSubjects().stream().map(Enum::name).toList(),
+                user.getSubjects().stream().map(Subject::getName).toList(),
                 docs.stream().map(documentService::mapToDTO).toList()
         );
 
         return ResponseEntity.ok(profile);
     }
 
-    // ✅ Verificar si el email ya existe
     @GetMapping("/exists/email")
     public ResponseEntity<Boolean> existsByEmail(@RequestParam String email) {
         boolean exists = userRepository.existsByMail(email);
         return ResponseEntity.ok(exists);
     }
 
-    // ✅ Verificar si el username ya existe
     @GetMapping("/exists/username")
     public ResponseEntity<Boolean> existsByUsername(@RequestParam String username) {
         boolean exists = userRepository.existsByUsername(username);
         return ResponseEntity.ok(exists);
     }
-
 }
-
-

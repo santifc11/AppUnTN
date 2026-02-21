@@ -11,7 +11,6 @@ import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class DocumentService {
@@ -58,7 +57,7 @@ public class DocumentService {
                 document.getId(),
                 document.getTitle(),
                 document.getDescription(),
-                document.getSubject().toString(),
+                document.getSubject().getName(),
                 document.getFileType(),
                 document.getUploadDate(),
                 document.getAuthor().getUsername(),
@@ -80,8 +79,4 @@ public class DocumentService {
     public List<Document> findByAuthor(User author) {
         return documentRepository.findByAuthorWithDetails(author);
     }
-
-
-
-
 }

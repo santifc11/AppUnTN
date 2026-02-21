@@ -5,6 +5,8 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +16,8 @@ import java.util.List;
 @Getter @Setter @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User implements UserDetails {
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -29,6 +33,7 @@ public class User implements UserDetails {
     private String city;
     @Lob //hace que el string pueda ser de mas de 255 caracteres.
     private String about;
+    @Enumerated(EnumType.STRING)
     private Role role;
 
 
@@ -57,18 +62,24 @@ public class User implements UserDetails {
         return UserDetails.super.isEnabled();
     }
 
-    @ElementCollection(targetClass = Subject.class)
-    @CollectionTable(name = "user_subjects", joinColumns = @JoinColumn(name = "id"))
-    @Column(name = "subject")
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_subjects",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "subject_id")
+    )
     private List<Subject> subjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Document> documents = new ArrayList<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Commentary> commentaries = new ArrayList<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Punctuation> punctuations = new ArrayList<>();
 
 

@@ -11,6 +11,7 @@ import utn.TpFinal.AppUnTN.model.Document;
 import utn.TpFinal.AppUnTN.model.Role;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
+import utn.TpFinal.AppUnTN.repository.SubjectRepository;
 import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
@@ -27,11 +28,15 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final UserService userService;
+    private final SubjectRepository subjectRepository; //
 
     @Autowired
-    public DocumentController(DocumentService documentService, UserService userService) {
+    public DocumentController(DocumentService documentService,
+                              UserService userService,
+                              SubjectRepository subjectRepository) {
         this.documentService = documentService;
         this.userService = userService;
+        this.subjectRepository = subjectRepository;
     }
 
     // Agregar documento
@@ -40,7 +45,7 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("subject") String subject,
+            @RequestParam("subject") String subjectName, // Recibimos el nombre (String)
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
@@ -73,11 +78,13 @@ public class DocumentController {
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Subject subjectEntity = subjectRepository.findByName(subjectName)
+                    .orElseThrow(() -> new RuntimeException("Materia no encontrada: " + subjectName));
 
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
-            doc.setSubject(subjectEnum);
+            doc.setSubject(subjectEntity); // Asignamos la entidad real
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());
@@ -94,7 +101,7 @@ public class DocumentController {
         }
     }
 
-    // Eliminar documento por id, con id en RequestBody para no pasar en URL, administradores o autores lo pueden borrar
+    // Eliminar documento por id
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteDocument(@RequestBody IdRequest idRequest, Authentication authentication) {
         String username = authentication.getName();
@@ -121,13 +128,10 @@ public class DocumentController {
         return ResponseEntity.ok("Documento eliminado con éxito");
     }
 
-
-    // Obtener todos los documentos en DTO
     @GetMapping("/getAll")
     public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments(
             @RequestParam(defaultValue = "recientes") String orden) {
         List<Document> documents = documentService.listarTodos();
-
         List<DocumentResponseDTO> response = documents.stream()
                 .map(documentService::mapToDTO)
                 .collect(Collectors.toList());
@@ -154,7 +158,6 @@ public class DocumentController {
         return ResponseEntity.ok(response);
     }
 
-    // Obtener documento por id en DTO
     @PostMapping("/getById")
     public ResponseEntity<?> getDocumentById(@RequestBody IdRequest idRequest) {
         Optional<Document> documentOpt = documentService.buscarPorId(idRequest.getId());
@@ -166,13 +169,16 @@ public class DocumentController {
         }
     }
 
-
-
     @PostMapping("/filterBySubject")
     public ResponseEntity<List<DocumentResponseDTO>> filterBySubject(@RequestBody FilterSubjectDTO filter) {
         try {
-            Subject subject = Subject.valueOf(filter.getSubject().toUpperCase());
-            List<Document> documents = documentService.findBySubject(subject);
+            Optional<Subject> subjectOpt = subjectRepository.findByName(filter.getSubject());
+
+            if (subjectOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(Collections.emptyList());
+            }
+
+            List<Document> documents = documentService.findBySubject(subjectOpt.get());
 
             List<DocumentResponseDTO> response = documents.stream()
                     .map(documentService::mapToDTO)
@@ -180,7 +186,7 @@ public class DocumentController {
 
             return ResponseEntity.ok(response);
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(Collections.emptyList());
         }
     }
@@ -253,7 +259,4 @@ public class DocumentController {
 
         return ResponseEntity.ok(response);
     }
-
-
-
 }

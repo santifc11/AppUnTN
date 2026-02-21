@@ -1,21 +1,26 @@
 package utn.TpFinal.AppUnTN.model;
 
-public enum Subject {
-    PROGRAMACION_I,
-    ARQUITECTURA_Y_SISTEMAS_OPERATIVOS,
-    MATEMATICA,
-    ORGANIZACION_EMPRESARIAL,
-    PROGRAMACION_II,
-    PROBABILIDAD_Y_ESTADISTICA,
-    BASE_DE_DATOS_II,
-    INGLES_I,
-    PROGRAMACION_III,
-    BASE_DE_DATOS_I,
-    METODOLOGIA_DE_SISTEMAS_I,
-    INGLES_II,
-    PROGRAMACION_IV,
-    METODOLOGIA_DE_SISTEMAS_II,
-    INTRODUCCION_AL_ANALISIS_DE_DATOS,
-    LEGISLACION,
-    GESTION_DE_DESARROLLO_DE_SOFTWARE,
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; //para pruebas postman
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) //para pruebas postman
+public class Subject {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    // Relación: Muchas Materias -> Una Carrera
+    @ManyToOne(fetch = FetchType.EAGER) // 5. EAGER: Cuando cargue la materia, traerá automáticamente los datos de la carrera asociada.
+    @JoinColumn(name = "career_id", nullable = false)
+    private Career career;
 }
