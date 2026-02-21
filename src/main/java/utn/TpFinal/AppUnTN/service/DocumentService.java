@@ -57,7 +57,7 @@ public class DocumentService {
                 document.getId(),
                 document.getTitle(),
                 document.getDescription(),
-                document.getSubject().toString(),
+                document.getSubject().getName(),
                 document.getFileType(),
                 document.getUploadDate(),
                 document.getAuthor().getUsername(),
