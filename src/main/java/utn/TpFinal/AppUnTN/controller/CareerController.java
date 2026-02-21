@@ -32,6 +32,7 @@ public class CareerController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/getAll")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(careerService.getAll());

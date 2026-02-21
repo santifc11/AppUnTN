@@ -30,6 +30,7 @@ public class SubjectController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/getAll")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(subjectService.getAll());

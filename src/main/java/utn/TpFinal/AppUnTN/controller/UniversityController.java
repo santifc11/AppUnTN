@@ -37,6 +37,7 @@ public class UniversityController {
         return ResponseEntity.ok(nuevaUni);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/getAll")
     public ResponseEntity<List<University>> getAll() {
         return ResponseEntity.ok(universityService.listarTodas());
