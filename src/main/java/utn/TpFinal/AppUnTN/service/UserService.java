@@ -42,6 +42,10 @@ public class UserService {
         if (userRepo.findByUsername(user.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException("El nombre de usuario ya está registrado.");
         }
+        if (userRepo.findByMail(user.getMail()).isPresent()) {
+            throw new UserAlreadyExistsException("El email ya está registrado.");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -108,6 +112,12 @@ public class UserService {
                         existingUser.setLastname(updatedUserData.getLastname());
                     }
                     if (updatedUserData.getMail() != null && !updatedUserData.getMail().isBlank()) {
+                        if (!updatedUserData.getMail().equals(existingUser.getMail())) {
+                            Optional<User> mailOwner = userRepo.findByMail(updatedUserData.getMail());
+                            if (mailOwner.isPresent() && !mailOwner.get().getUsername().equals(username)) {
+                                throw new UserAlreadyExistsException("El email ya está en uso por otro usuario.");
+                            }
+                        }
                         existingUser.setMail(updatedUserData.getMail());
                     }
                     if (updatedUserData.getPassword() != null && !updatedUserData.getPassword().isBlank()) {

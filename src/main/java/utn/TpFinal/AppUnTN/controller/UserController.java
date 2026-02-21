@@ -3,6 +3,7 @@ package utn.TpFinal.AppUnTN.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -39,17 +40,19 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             return ResponseEntity.ok(userService.register(user));
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
         List<UserAdminDTO> users = userService.getAllUsersDTO();
         return ResponseEntity.ok(users);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser(@RequestBody UsernameRequest usernameRequest) {
         String usernameToDelete = usernameRequest.getUsername();
@@ -80,13 +83,15 @@ public class UserController {
     @PutMapping("/updateUser")
     public ResponseEntity<String> updateUser(@RequestBody UserUpdateDTO updatedData) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        // OJO: Asegúrate de que tu UserService esté preparado para recibir este DTO
-        String result = userService.updateUserByUsername(username, updatedData);
-
-        if (result.contains("actualizado")) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(404).body(result);
+        try {
+            String result = userService.updateUserByUsername(username, updatedData);
+            if (result.contains("actualizado")) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
