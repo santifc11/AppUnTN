@@ -65,14 +65,8 @@ public class DocumentController {
                 return ResponseEntity.badRequest().body("El archivo no puede superar los 10MB.");
             }
             // Validar materia
-            if (subject == null || subject.isBlank()) {
+            if (subjectName == null || subjectName.isBlank()) {
                 return ResponseEntity.badRequest().body("La materia es obligatoria.");
-            }
-            Subject subjectEnum;
-            try {
-                subjectEnum = Subject.valueOf(subject);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body("Materia inválida.");
             }
 
             String username = authentication.getName();

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -53,6 +54,7 @@ public class SecurityConfig {
             UserDetailsService userDetailsService) throws Exception {
 
         return http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                                 // Público (registro, login, estáticos)
@@ -89,7 +91,8 @@ public class SecurityConfig {
                                         "/api/commentaries/**",
                                         "/admin/**",
                                         "/api/users/getAllUsers",
-                                        "/api/users/deleteUser"
+                                        "/api/users/deleteUser",
+                                        "/api/users/updateRole"
                                 ).authenticated()
                                 .anyRequest().authenticated()
 
@@ -105,7 +108,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200")); // 👈 tu front Angular
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

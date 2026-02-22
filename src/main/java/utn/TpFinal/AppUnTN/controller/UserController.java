@@ -18,6 +18,7 @@ import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -45,14 +46,14 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
         List<UserAdminDTO> users = userService.getAllUsersDTO();
         return ResponseEntity.ok(users);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser(@RequestBody UsernameRequest usernameRequest) {
         String usernameToDelete = usernameRequest.getUsername();
@@ -167,4 +168,16 @@ public class UserController {
         boolean exists = userRepository.existsByUsername(username);
         return ResponseEntity.ok(exists);
     }
+
+    @PatchMapping("/updateRole")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateRole(@RequestBody UpdateRoleRequest request) {
+        try {
+            userService.updateUserRole(request.getUsername(), request.getNewRole());
+            return ResponseEntity.ok("Rol actualizado correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 }

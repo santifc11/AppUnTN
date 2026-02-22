@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static utn.TpFinal.AppUnTN.model.Role.STUDENT;
+
 @Service
 public class UserService {
 
@@ -45,7 +47,7 @@ public class UserService {
         if (userRepo.findByMail(user.getMail()).isPresent()) {
             throw new UserAlreadyExistsException("El email ya está registrado.");
         }
-
+        user.setRole(STUDENT);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -206,4 +208,18 @@ public class UserService {
                 })
                 .orElse("Usuario no encontrado");
     }
+    public void updateUserRole(String username, String newRole) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+
+        try {
+            user.setRole(Role.valueOf(newRole.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("El rol proporcionado no es válido: " + newRole);
+        }
+
+        userRepo.save(user);
+    }
+
+
 }
