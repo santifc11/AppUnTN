@@ -169,13 +169,12 @@ public class UserController {
         return ResponseEntity.ok(exists);
     }
 
-    @PatchMapping("/{id}/role")
+    @PatchMapping("/updateRole")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> updateRole(@RequestBody UpdateRoleRequest request) {
         try {
-            String newRole = body.get("role");
-            User updatedUser = userService.updateUserRole(id, newRole);
-            return ResponseEntity.ok(updatedUser);
+            userService.updateUserRole(request.getUsername(), request.getNewRole());
+            return ResponseEntity.ok("Rol actualizado correctamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

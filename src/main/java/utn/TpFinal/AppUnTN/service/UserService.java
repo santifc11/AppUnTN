@@ -208,12 +208,17 @@ public class UserService {
                 })
                 .orElse("Usuario no encontrado");
     }
-    public User updateUserRole(Long id, String newRole) {
-        User user = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public void updateUserRole(String username, String newRole) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
 
-        user.setRole(Role.valueOf(newRole));
-        return userRepo.save(user);
+        try {
+            user.setRole(Role.valueOf(newRole.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("El rol proporcionado no es válido: " + newRole);
+        }
+
+        userRepo.save(user);
     }
 
 
