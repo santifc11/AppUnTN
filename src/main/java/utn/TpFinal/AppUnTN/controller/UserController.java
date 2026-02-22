@@ -18,6 +18,7 @@ import utn.TpFinal.AppUnTN.service.DocumentService;
 import utn.TpFinal.AppUnTN.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -167,4 +168,17 @@ public class UserController {
         boolean exists = userRepository.existsByUsername(username);
         return ResponseEntity.ok(exists);
     }
+
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            String newRole = body.get("role");
+            User updatedUser = userService.updateUserRole(id, newRole);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 }
