@@ -117,11 +117,16 @@ public class UserController {
     }
 
     @PutMapping("/subjects/update")
-    public ResponseEntity<String> updateSubjects(Authentication auth, @RequestBody SubjectsDTO dto) {
-        String username = auth.getName();
-        // Aquí probablemente tengas que adaptar el UserService para buscar las materias por nombre en la BD
-        String resultado = userService.updateSubjects(username, dto.getSubjects());
-        return ResponseEntity.ok(resultado);
+    public ResponseEntity<?> addSubjectToProfessor(@RequestBody SubjectUpdateRequest request) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            userService.addSubjectToUser(username, request.getSubjectId());
+
+            return ResponseEntity.ok("Materia vinculada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/subjects/delete")
