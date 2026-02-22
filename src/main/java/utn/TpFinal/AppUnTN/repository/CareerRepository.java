@@ -10,6 +10,6 @@ import java.util.List;
 public interface CareerRepository extends JpaRepository<Career, Long> {
 
     List<Career> findByNameContainingIgnoreCase(String name);
-
+    List<Career> findByUniversityId(Long universityId);
     boolean existsByName(String name);
 }

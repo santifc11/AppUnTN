@@ -221,5 +221,23 @@ public class UserService {
         userRepo.save(user);
     }
 
+    @Transactional
+    public void addSubjectToUser(String username, Long subjectId) {
+
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new RuntimeException("La materia con ID " + subjectId + " no existe"));
+
+
+        if (!user.getSubjects().contains(subject)) {
+            user.getSubjects().add(subject);
+            userRepo.save(user);
+        } else {
+            throw new RuntimeException("Ya tienes esta materia asignada");
+        }
+    }
 
 }

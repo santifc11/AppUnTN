@@ -46,4 +46,9 @@ public class SubjectService {
         }
         subjectRepo.deleteById(id);
     }
+
+    public List<Subject> getByCareer(Long careerId) {
+        return subjectRepo.findByCareerId(careerId);
+    }
+
 }

@@ -51,4 +51,8 @@ public class CareerService {
         }
         careerRepo.deleteById(id);
     }
+
+    public List<Career> getByUniversity(Long universityId) {
+        return careerRepo.findByUniversityId(universityId);
+    }
 }

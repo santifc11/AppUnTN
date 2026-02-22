@@ -84,4 +84,11 @@ public class SubjectController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/by-career/{careerId}")
+    public ResponseEntity<List<Subject>> getByCareer(@PathVariable Long careerId) {
+        return ResponseEntity.ok(subjectService.getByCareer(careerId));
+    }
+
 }

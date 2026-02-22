@@ -9,6 +9,6 @@ import java.util.Optional;
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
 
     List<Subject> findByNameContainingIgnoreCase(String name);
-
+    List<Subject> findByCareerId(Long careerId);
     Optional<Subject> findByName(String name);
 }

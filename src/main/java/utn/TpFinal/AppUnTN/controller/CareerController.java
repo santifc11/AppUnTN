@@ -83,4 +83,10 @@ public class CareerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    @GetMapping("/by-university/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Career>> getByUniversity(@PathVariable Long id) {
+        return ResponseEntity.ok(careerService.getByUniversity(id));
+    }
 }
