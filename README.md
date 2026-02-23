@@ -1,137 +1,120 @@
-<-------- AppUnTN — Plataforma de resúmenes colaborativos -------->
+<-------- AppUnTN Backend — Plataforma de resúmenes colaborativos -------->
 
 AppUnTN es una plataforma web diseñada para estudiantes y docentes de la UTN.
 Permite subir, descargar, puntuar y comentar resúmenes, junto con un sistema de roles (Alumno, Profesor, Administrador) y herramientas de gestión para docentes y admins.
 
-Este repositorio contiene el Frontend desarrollado en Angular 20.
+Este repositorio contiene la API REST (Backend) desarrollada en Java con Spring Boot.
 
 <-- Tecnologías utilizadas -->
 
-Frontend
+Backend
+
+- Java 17+
+- Spring Boot
+- Spring Security (Autenticación y Autorización basada en roles)
+- JWT (JSON Web Tokens)
+- Spring Data JPA / Hibernate
+- MySQL (Base de datos relacional)
+- Lombok (Reducción de código boilerplate)
+- Jackson (Serialización y manejo de DTOs)
+
+Frontend (proyecto separado)
 
 - Angular 20
 - Signals API
 - HTML / CSS
-- JWT Authentication (envío de token vía headers)
-- Consumo de API REST (HttpClient)
-
-Backend (proyecto separado)
-
-- Spring Boot
-- Spring Security con JWT
-- MySQL
-- Lombok / DTOs / Repositorios JPA
+- Consumo de API REST vía HttpClient
 
 <-- Funcionalidades principales -->
 
-Usuarios:
+Seguridad y Autenticación:
 
-- Registro de alumnos y profesores
-- Inicio de sesión con JWT
-- Edición de perfil: nombre, apellido, email, ciudad, descripción y contraseña
-- Vista previa y descarga de resúmenes
+- Generación y validación de tokens JWT.
+- Protección de rutas a nivel de método mediante `@PreAuthorize`.
+- Control estricto de accesos según el rol del usuario (ADMIN, USER).
 
-Profesores:
+Gestión de Usuarios:
 
-- Asignación de materias que dictan
-- Visualización y gestión de sus materias
-- Filtro por materia y vista previa de resúmenes
+- Endpoints para registro e inicio de sesión.
+- Lógica de actualización de perfiles (contraseñas, datos personales).
+- Eliminación segura de usuarios verificando permisos del solicitante.
 
-Administradores:
+Gestión de Documentos (Resúmenes):
 
-- Gestión completa de usuarios
-- Registrar nuevos administradores
-- Eliminar usuarios (excepto a sí mismos y admin root)
-- Filtrado por nombre, usuario, email y rol
-- Gestión de administradores (vista específica)
+- Almacenamiento de archivos físicos directamente en la base de datos (`LONGBLOB`).
+- Generación de respuestas blindadas (DTOs) para evitar sobrecarga de datos.
+- Búsqueda y filtrado relacional.
 
-Resúmenes: 
+Estructura Académica (Filtros en Cascada):
 
-- Subida de archivos PDF
-- Vista previa
-- Búsqueda y filtrado por materia
-- Comentarios y puntuaciones
+- Relaciones complejas controladas (Universidad -> Carrera -> Materia).
+- Prevención de recursividad (bucle infinito de JSON) mediante anotaciones como `@JsonIgnore` y `@JsonIgnoreProperties`.
 
 <-- Estructura del proyecto -->
 
-/src
-├── /app
-│   ├── /pages
-│   │   ├── /profile
-│   │   ├── /login
-│   │   ├── /register
-│   │   ├── /admin-admins
-│   │   ├── /admin-usuarios
-│   │   ├── /subjects
-│   │   └── /documents
-│   └── /services
-│       ├── auth.ts
-│       ├── user-service.ts
-│       └── document-service.ts
-└── /assets
+/src/main/java/utn/TpFinal/AppUnTN
+├── /controller
+├── /service
+├── /model
+├── /repository
+├── /DTO
+├── /Security
+└── /Exceptions
+/src/main/resources
+└── application.properties
 
 -- Descripción de Carpetas
 
-- */app/pages*: Contiene las páginas de la aplicación
-  - /profile: Página de perfil de usuario
-  - /login: Página de inicio de sesión
-  - /register: Página de registro
-  - /admin-admins: Panel de administración de administradores
-  - /admin-usuarios: Panel de administración de usuarios
-  - /subjects: Gestión de materias
-  - /documents: Gestión de documentos
-
-- */app/services*: Servicios de la aplicación
-  - auth.ts: Servicio de autenticación
-  - user-service.ts: Servicio de gestión de usuarios
-  - document-service.ts: Servicio de gestión de documentos
-
-- */assets*: Recursos estáticos (imágenes, fuentes, etc.)
+- */controller*: Controladores REST que exponen los endpoints de la API (UserController, DocumentController).
+- */service*: Lógica de negocio y procesamiento de datos (UserService, DocumentService).
+- */model*: Entidades JPA mapeadas a las tablas de la base de datos (User, Document, Subject, Career, University).
+- */repository*: Interfaces de Spring Data JPA para el acceso a datos.
+- */DTO*: Objetos de Transferencia de Datos para enviar solo la información necesaria al frontend.
+- */Security*: Configuración de Spring Security, filtros JWT y validaciones.
+- */Exceptions*: Clases para el manejo de errores HTTP personalizados.
 
 <-- Instalación y ejecución -->
 
 1- Clonar el repositorio.
 -- en consola:
-      git clone https://github.com/usuario/AppUnTN-Frontend.git
-      cd AppUnTN-Frontend
+      git clone https://github.com/usuario/AppUnTN-Backend.git
+      cd AppUnTN-Backend
 
-2- Instalar dependencias.
--- en consola:
-      npm install
+2- Configurar la Base de Datos.
+-- Asegurate de tener MySQL corriendo en tu entorno local.
+-- En tu gestor de base de datos, creá un esquema vacío:
+      CREATE DATABASE appuntn;
+-- Revisá el archivo `src/main/resources/application.properties` para asegurar que las credenciales de MySQL (usuario y contraseña) coincidan con las de tu máquina. Hibernate creará las tablas automáticamente (`ddl-auto=update`).
 
-3- Ejecutar en modo desarrollo.
--- en consola:
-      ng serve
+3- Ejecutar la aplicación.
+-- Podés correrlo directamente desde tu IDE (IntelliJ IDEA / Eclipse) dándole a "Run" en la clase principal `AppUnTnApplication.java`.
+-- O mediante consola con Maven:
+      mvn spring-boot:run
 
-La aplicación estará corriendo en:
-      http://localhost:4200/
+La API estará corriendo en:
+      http://localhost:8080/
 
-<-- Conexión con el Backend -->
-El backend debe estar corriendo en:
-      http://localhost:8080
+<-- Conexión con el Frontend -->
+Asegurate de que el Frontend de Angular esté corriendo en `http://localhost:4200/`. El backend tiene configurado el `@CrossOrigin` para permitir las peticiones desde este puerto.
 
-Rutas principales:
+Principales Endpoints expuestos:
 
-POST /api/auth/login
-POST /api/users/register
-POST /api/users/profile
-PUT  /api/users/updateUser
-GET  /api/users/getAllUsers
+POST   /api/auth/login
+POST   /api/users/register
+GET    /api/users/me
+GET    /api/users/getAllUsers
 DELETE /api/users/deleteUser
+
+POST   /api/documents/add
+GET    /api/documents/getAll
+GET    /api/admin/universities
+GET    /api/admin/careers
+GET    /api/admin/subjects
 
 <-- Roles y permisos -->
 
-Alumno        | Subir/descargar resúmenes, editar perfil
-Profesor      |	Todo lo anterior + asignarse materias
-Administrador |	Gestión de usuarios, admins, eliminación, registro de nuevos admins
-
-<-- Contribuciones -->
-
-Pull requests son bienvenidos!
-Para cambios importantes, crear primero un issue para discutir lo propuesto.
+Authority: USER       | Puede registrarse, subir y descargar documentos, actualizar su perfil.
+Authority: ROLE_ADMIN | Tiene acceso total a los endpoints bloqueados con @PreAuthorize. Puede gestionar usuarios y eliminar administradores.
 
 <-- Licencia -->
 MIT – libre para uso académico y educativo.
-
-
-
