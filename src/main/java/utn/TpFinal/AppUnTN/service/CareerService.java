@@ -2,8 +2,11 @@ package utn.TpFinal.AppUnTN.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import utn.TpFinal.AppUnTN.model.Career;
+import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.repository.CareerRepository;
+import utn.TpFinal.AppUnTN.repository.SubjectRepository;
 import utn.TpFinal.AppUnTN.repository.UniversityRepository;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +19,12 @@ public class CareerService {
 
     @Autowired
     private UniversityRepository universityRepo;
+
+    @Autowired
+    private SubjectRepository subjectRepo;
+
+    @Autowired
+    private SubjectService subjectService;
 
     public Career save(Career career) {
         if (career.getUniversity() == null || career.getUniversity().getId() == null) {
@@ -45,10 +54,18 @@ public class CareerService {
         return careerRepo.findByNameContainingIgnoreCase(name);
     }
 
+    @Transactional
     public void delete(Long id) {
         if (!careerRepo.existsById(id)) {
             throw new IllegalArgumentException("No se puede eliminar: ID no encontrado.");
         }
+
+        // Limpiar todos los subjects de esta carrera (y sus dependencias)
+        List<Subject> subjects = subjectRepo.findByCareerId(id);
+        for (Subject s : subjects) {
+            subjectService.delete(s.getId());
+        }
+
         careerRepo.deleteById(id);
     }
 
