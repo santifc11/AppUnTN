@@ -47,7 +47,9 @@ public class UserService {
         if (userRepo.findByMail(user.getMail()).isPresent()) {
             throw new UserAlreadyExistsException("El email ya está registrado.");
         }
-        user.setRole(STUDENT);
+        if (user.getRole() == null) {
+            user.setRole(STUDENT);
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
