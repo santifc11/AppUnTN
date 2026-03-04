@@ -19,22 +19,23 @@ public class UniversityController {
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody University university) {
-
-        //Valida que el Id sea nulo antes de crear
-
         if (university.getId() != null) {
             return ResponseEntity.badRequest()
-                    .body("Error: No puedes enviar un ID para crear una nueva universidad. El sistema lo genera automáticamente.");
+                    .body("Error: No puedes enviar un ID para crear una nueva universidad.");
         }
-
-        //Valida que no venga vacio el nombre.
 
         if (university.getName() == null || university.getName().isBlank()) {
             return ResponseEntity.badRequest().body("Error: El nombre de la universidad es obligatorio.");
         }
 
-        University nuevaUni = universityService.guardar(university);
-        return ResponseEntity.ok(nuevaUni);
+        try {
+            University nuevaUni = universityService.guardar(university);
+            return ResponseEntity.ok(nuevaUni);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error inesperado al crear la universidad.");
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -52,10 +53,24 @@ public class UniversityController {
 
     @PutMapping("/update")
     public ResponseEntity<?> update(@RequestBody University university) {
-        if (university.getId() == null || !universityService.buscarPorId(university.getId()).isPresent()) {
-            return ResponseEntity.badRequest().body("ID de universidad no válido o no existente.");
+
+        if (university.getId() == null) {
+            return ResponseEntity.badRequest().body("Error: El ID de la universidad es necesario para actualizar.");
         }
-        return ResponseEntity.ok(universityService.guardar(university));
+
+        if (!universityService.buscarPorId(university.getId()).isPresent()) {
+            return ResponseEntity.badRequest().body("Error: La universidad con ID " + university.getId() + " no existe.");
+        }
+
+        try {
+
+            University actualizada = universityService.guardar(university);
+            return ResponseEntity.ok(actualizada);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error inesperado al actualizar.");
+        }
     }
 
     @DeleteMapping("/delete/{id}")

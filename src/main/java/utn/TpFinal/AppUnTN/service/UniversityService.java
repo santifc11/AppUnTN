@@ -24,6 +24,18 @@ public class UniversityService {
     private CareerService careerService;
 
     public University guardar(University university) {
+
+        if (university.getId() == null) {
+            if (universityRepository.existsByNameIgnoreCase(university.getName())) {
+                throw new IllegalArgumentException("Ya existe una universidad con el nombre: " + university.getName());
+            }
+        }
+        else {
+            if (universityRepository.existsByNameIgnoreCaseAndIdNot(university.getName(), university.getId())) {
+                throw new IllegalArgumentException("No puedes usar el nombre '" + university.getName() + "' porque ya pertenece a otra universidad.");
+            }
+        }
+
         return universityRepository.save(university);
     }
 

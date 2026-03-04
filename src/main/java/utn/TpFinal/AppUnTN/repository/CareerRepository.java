@@ -8,8 +8,9 @@ import java.util.List;
 
 @Repository
 public interface CareerRepository extends JpaRepository<Career, Long> {
+    boolean existsByNameIgnoreCaseAndUniversityId(String name, Long universityId);
+    boolean existsByNameIgnoreCaseAndUniversityIdAndIdNot(String name, Long universityId, Long id);
 
     List<Career> findByNameContainingIgnoreCase(String name);
     List<Career> findByUniversityId(Long universityId);
-    boolean existsByName(String name);
 }

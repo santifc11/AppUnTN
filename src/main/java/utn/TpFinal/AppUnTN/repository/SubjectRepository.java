@@ -15,6 +15,10 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     List<Subject> findByCareerId(Long careerId);
     Optional<Subject> findByName(String name);
 
+    boolean existsByNameIgnoreCaseAndCareerId(String name, Long careerId);
+
+    boolean existsByNameIgnoreCaseAndCareerIdAndIdNot(String name, Long careerId, Long id);
+
     @Modifying
     @Query(value = "DELETE FROM user_subjects WHERE subject_id = :subjectId", nativeQuery = true)
     void removeFromAllUsers(@Param("subjectId") Long subjectId);

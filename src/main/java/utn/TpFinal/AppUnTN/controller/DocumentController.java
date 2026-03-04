@@ -45,7 +45,7 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("subject") String subjectName, // Recibimos el nombre (String)
+            @RequestParam("subjectId") Long subjectId,
             @RequestParam("fileType") String fileType,
             Authentication authentication) {
         try {
@@ -64,21 +64,21 @@ public class DocumentController {
             if (file.getSize() > maxSize) {
                 return ResponseEntity.badRequest().body("El archivo no puede superar los 10MB.");
             }
-            // Validar materia
-            if (subjectName == null || subjectName.isBlank()) {
-                return ResponseEntity.badRequest().body("La materia es obligatoria.");
+
+            if (subjectId == null) {
+                return ResponseEntity.badRequest().body("El ID de la materia es obligatorio.");
             }
 
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            Subject subjectEntity = subjectRepository.findByName(subjectName)
-                    .orElseThrow(() -> new RuntimeException("Materia no encontrada: " + subjectName));
+            Subject subjectEntity = subjectRepository.findById(subjectId)
+                    .orElseThrow(() -> new RuntimeException("Materia no encontrada con ID: " + subjectId));
 
             Document doc = new Document();
             doc.setTitle(title);
             doc.setDescription(description);
-            doc.setSubject(subjectEntity); // Asignamos la entidad real
+            doc.setSubject(subjectEntity);
             doc.setFileType(fileType);
             doc.setUploadDate(LocalDate.now());
             doc.setData(file.getBytes());

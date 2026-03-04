@@ -26,17 +26,27 @@ public class CareerService {
     @Autowired
     private SubjectService subjectService;
 
+    // CareerService.java
     public Career save(Career career) {
+
         if (career.getUniversity() == null || career.getUniversity().getId() == null) {
-            throw new IllegalArgumentException("La carrera debe pertenecer a una universidad válida (ID requerido).");
+            throw new IllegalArgumentException("La carrera debe estar vinculada a una universidad.");
         }
 
-        if (!universityRepo.existsById(career.getUniversity().getId())) {
+        Long uniId = career.getUniversity().getId();
+
+        if (!universityRepo.existsById(uniId)) {
             throw new IllegalArgumentException("La universidad especificada no existe.");
         }
 
-        if (career.getId() == null && careerRepo.existsByName(career.getName())) {
-            throw new IllegalArgumentException("Ya existe una carrera con el nombre: " + career.getName());
+        if (career.getId() == null) {
+            if (careerRepo.existsByNameIgnoreCaseAndUniversityId(career.getName(), uniId)) {
+                throw new IllegalArgumentException("La universidad ya tiene una carrera llamada: " + career.getName());
+            }
+        } else {
+            if (careerRepo.existsByNameIgnoreCaseAndUniversityIdAndIdNot(career.getName(), uniId, career.getId())) {
+                throw new IllegalArgumentException("Ya existe otra carrera con el nombre '" + career.getName() + "' en esta universidad.");
+            }
         }
 
         return careerRepo.save(career);

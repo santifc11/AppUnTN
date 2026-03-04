@@ -22,13 +22,25 @@ public class SubjectService {
     @Autowired
     private DocumentRepository documentRepo;
 
+
     public Subject save(Subject subject) {
+
         if (subject.getCareer() == null || subject.getCareer().getId() == null) {
             throw new IllegalArgumentException("La materia debe pertenecer a una carrera válida (ID requerido).");
         }
-
-        if (!careerRepo.existsById(subject.getCareer().getId())) {
+        Long careerId = subject.getCareer().getId();
+        if (!careerRepo.existsById(careerId)) {
             throw new IllegalArgumentException("La carrera especificada no existe.");
+        }
+
+        if (subject.getId() == null) {
+            if (subjectRepo.existsByNameIgnoreCaseAndCareerId(subject.getName(), careerId)) {
+                throw new IllegalArgumentException("Ya existe una materia llamada '" + subject.getName() + "' en esta carrera.");
+            }
+        } else {
+            if (subjectRepo.existsByNameIgnoreCaseAndCareerIdAndIdNot(subject.getName(), careerId, subject.getId())) {
+                throw new IllegalArgumentException("El nombre '" + subject.getName() + "' ya está siendo usado por otra materia en esta misma carrera.");
+            }
         }
 
         return subjectRepo.save(subject);
