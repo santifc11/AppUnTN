@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -18,7 +18,7 @@ public class Commentary {
     private String content;
 
     @CreationTimestamp
-    private LocalDate creationDate; //solo la fecha.
+    private LocalDateTime creationDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)

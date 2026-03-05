@@ -6,5 +6,6 @@ import lombok.Data;
 public class FilterSubjectDTO {
 
     private String subject;
+    private Long subjectId;
 
 }

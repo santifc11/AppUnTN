@@ -182,11 +182,11 @@ public class UserService {
                 .orElse("Usuario no encontrado");
     }
 
-    public String deleteSubject(String username, String subjectStr) {
-        Optional<Subject> subjectOpt = subjectRepository.findByName(subjectStr);
+    public String deleteSubject(String username, Long subjectId) {
+        Optional<Subject> subjectOpt = subjectRepository.findById(subjectId);
 
         if (subjectOpt.isEmpty()) {
-            return "Materia inválida o no encontrada: " + subjectStr;
+            return "Materia inválida o no encontrada";
         }
 
         Subject subjectToDelete = subjectOpt.get();

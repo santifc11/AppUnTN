@@ -3,6 +3,7 @@ package utn.TpFinal.AppUnTN.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -35,7 +36,7 @@ public class DocumentResponseDTO {
         private Long id;
         private String content;
         private String authorUsername;
-        private LocalDate creationDate;
+        private LocalDateTime creationDate;
         private boolean destacado;
     }
 }

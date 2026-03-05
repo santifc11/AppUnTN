@@ -3,12 +3,15 @@ package utn.TpFinal.AppUnTN.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utn.TpFinal.AppUnTN.DTO.DocumentResponseDTO;
+import utn.TpFinal.AppUnTN.model.Commentary;
 import utn.TpFinal.AppUnTN.model.Document;
+import utn.TpFinal.AppUnTN.model.Punctuation;
 import utn.TpFinal.AppUnTN.model.Subject;
 import utn.TpFinal.AppUnTN.model.User;
 import utn.TpFinal.AppUnTN.repository.DocumentRepository;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +40,8 @@ public class DocumentService {
 
     public DocumentResponseDTO mapToDTO(Document document) {
         List<DocumentResponseDTO.PunctuationDTO> punctuationDTOs = document.getPunctuations().stream()
+                .sorted(Comparator.comparing(Punctuation::isDestacado).reversed()
+                        .thenComparing(Comparator.comparing(Punctuation::getValue).reversed()))
                 .map(p -> new DocumentResponseDTO.PunctuationDTO(
                         p.getId(),
                         p.getValue(),
@@ -45,6 +50,8 @@ public class DocumentService {
                 )).toList();
 
         List<DocumentResponseDTO.CommentaryDTO> commentaryDTOs = document.getCommentaries().stream()
+                .sorted(Comparator.comparing(Commentary::isDestacado).reversed()
+                        .thenComparing(Comparator.comparing(Commentary::getCreationDate).reversed()))
                 .map(c -> new DocumentResponseDTO.CommentaryDTO(
                         c.getId(),
                         c.getContent(),

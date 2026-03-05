@@ -132,7 +132,7 @@ public class UserController {
     @DeleteMapping("/subjects/delete")
     public ResponseEntity<String> deleteSubject(Authentication auth, @RequestBody FilterSubjectDTO dto) {
         String username = auth.getName();
-        String result = userService.deleteSubject(username, dto.getSubject());
+        String result = userService.deleteSubject(username, dto.getSubjectId());
         return ResponseEntity.ok(result);
     }
 

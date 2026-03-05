@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import utn.TpFinal.AppUnTN.model.Commentary;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -14,7 +14,7 @@ public class CommentaryDTO {
     private Long id;
     private String content;
     private String authorUsername;
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
     private boolean destacado;
 
     public static CommentaryDTO fromEntity(Commentary c) {
