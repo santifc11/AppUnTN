@@ -1,5 +1,15 @@
 <-------- AppUnTN Backend — Plataforma de resúmenes colaborativos -------->
 
+Proyecto final de la Tecnicatura Universitaria en Programación – UTN Mar del Plata (2026).
+Frontend (Angular 20): https://github.com/FelipeCliment06/AppUnTN
+
+Equipo:
+
+@FelipeCliment06
+@lautaro1216
+@juanhol
+@santifc11
+
 AppUnTN es una plataforma web diseñada para estudiantes y docentes de la UTN.
 Permite subir, descargar, puntuar y comentar resúmenes, junto con un sistema de roles (Alumno, Profesor, Administrador) y herramientas de gestión para docentes y admins.
 
@@ -77,7 +87,7 @@ Estructura Académica (Filtros en Cascada):
 
 1- Clonar el repositorio.
 -- en consola:
-      git clone https://github.com/usuario/AppUnTN-Backend.git
+      git clone https://github.com/santifc11/AppUnTN.git
       cd AppUnTN-Backend
 
 2- Configurar la Base de Datos.
